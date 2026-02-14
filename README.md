@@ -1,6 +1,7 @@
 # StudentOnboard
 Student on-boarding system 
-Perfect—here’s a **clean, scalable .NET Web API project structure using Dapper** with **Microsoft SQL Server** as the database. This is a **production-style layout** you can drop into your GitHub repo under `/api`.
+is a **clean, scalable .NET Web API project structure using Dapper** with **Microsoft SQL Server** as the database. This is a **production-style layout** you can drop into your 
+
 
 ---
 
