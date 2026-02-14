@@ -1,0 +1,9 @@
+CREATE TABLE StudentProfiles (
+    Id INT IDENTITY PRIMARY KEY,
+    FullName NVARCHAR(100) NOT NULL,
+    Email NVARCHAR(150) NOT NULL,
+    DateOfBirth DATE NOT NULL,
+    Address NVARCHAR(300) NOT NULL,
+    EducationBackground NVARCHAR(200) NOT NULL,
+    CreatedAt DATETIME2 NOT NULL
+);
