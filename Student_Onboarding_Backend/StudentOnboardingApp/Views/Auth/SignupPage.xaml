@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:StudentOnboardingApp.ViewModels.Auth"
+             x:Class="StudentOnboardingApp.Views.Auth.SignupPage"
+             x:DataType="vm:SignupViewModel"
+             Shell.NavBarIsVisible="False">
+
+    <ContentPage.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="{StaticResource GradientStart}" Offset="0.0" />
+            <GradientStop Color="{StaticResource GradientMid}" Offset="0.4" />
+            <GradientStop Color="{StaticResource GradientEnd}" Offset="1.0" />
+        </LinearGradientBrush>
+    </ContentPage.Background>
+
+    <Grid>
+    <ScrollView Padding="0" VerticalOptions="Fill">
+        <VerticalStackLayout Spacing="14" Padding="24" VerticalOptions="CenterAndExpand">
+
+            <Border BackgroundColor="#FFFFFF88"
+                    StrokeThickness="0" StrokeShape="RoundRectangle 22"
+                    HeightRequest="56" WidthRequest="56"
+                    HorizontalOptions="Center" Margin="0,16,0,0">
+                <Label Text="&#x270D;" FontSize="26"
+                       HorizontalOptions="Center" VerticalOptions="Center" />
+            </Border>
+
+            <Label Text="Create Account"
+                   FontSize="26" FontFamily="OpenSansSemibold" FontAttributes="Bold"
+                   TextColor="{StaticResource DarkText}" HorizontalOptions="Center" />
+            <Label Text="Join us and start your learning journey"
+                   FontSize="14" TextColor="{StaticResource TextSecondary}"
+                   HorizontalOptions="Center" Margin="0,0,0,4" />
+
+            <!-- Form Card -->
+            <Border BackgroundColor="#E8FFFFFF"
+                    StrokeShape="RoundRectangle 24" Stroke="#60FFFFFF"
+                    StrokeThickness="1" Padding="22,24">
+                <Border.Shadow>
+                    <Shadow Brush="#205B5BD6" Offset="0,8" Radius="32" Opacity="0.2" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="14">
+
+                    <Label Text="Registration" FontSize="20" FontFamily="OpenSansSemibold"
+                           FontAttributes="Bold" TextColor="{StaticResource DarkText}" HorizontalOptions="Center" />
+
+                    <Border BackgroundColor="{StaticResource ErrorLight}"
+                            StrokeShape="RoundRectangle 10" Stroke="{StaticResource ErrorRed}"
+                            StrokeThickness="1" Padding="12,8"
+                            IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullConverter}}">
+                        <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource ErrorText}"
+                               FontSize="13" HorizontalTextAlignment="Center" />
+                    </Border>
+
+                    <!-- Name Row -->
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                        <VerticalStackLayout Spacing="5">
+                            <Label Text="FIRST NAME" FontSize="10" FontFamily="OpenSansSemibold"
+                                   TextColor="Black" CharacterSpacing="1" />
+                            <Border BackgroundColor="White" Stroke="{StaticResource BorderColor}"
+                                    StrokeShape="RoundRectangle 12" Padding="12,2" StrokeThickness="1.5">
+                                <Entry Placeholder="First name" Text="{Binding FirstName}" ReturnType="Next"
+                                       TextColor="Black" PlaceholderColor="{StaticResource TextMuted}" />
+                            </Border>
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1" Spacing="5">
+                            <Label Text="LAST NAME" FontSize="10" FontFamily="OpenSansSemibold"
+                                   TextColor="Black" CharacterSpacing="1" />
+                            <Border BackgroundColor="White" Stroke="{StaticResource BorderColor}"
+                                    StrokeShape="RoundRectangle 12" Padding="12,2" StrokeThickness="1.5">
+                                <Entry Placeholder="Last name" Text="{Binding LastName}" ReturnType="Next"
+                                       TextColor="Black" PlaceholderColor="{StaticResource TextMuted}" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="EMAIL" FontSize="10" FontFamily="OpenSansSemibold"
+                               TextColor="Black" CharacterSpacing="1" />
+                        <Border BackgroundColor="White" Stroke="{StaticResource BorderColor}"
+                                StrokeShape="RoundRectangle 12" Padding="12,2" StrokeThickness="1.5">
+                            <Entry Placeholder="Enter your email" Text="{Binding Email}" Keyboard="Email" ReturnType="Next"
+                                   TextColor="Black" PlaceholderColor="{StaticResource TextMuted}" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="PHONE" FontSize="10" FontFamily="OpenSansSemibold"
+                               TextColor="Black" CharacterSpacing="1" />
+                        <Border BackgroundColor="White" Stroke="{StaticResource BorderColor}"
+                                StrokeShape="RoundRectangle 12" Padding="12,2" StrokeThickness="1.5">
+                            <Entry Placeholder="Phone number" Text="{Binding PhoneNumber}" Keyboard="Telephone" ReturnType="Next"
+                                   TextColor="Black" PlaceholderColor="{StaticResource TextMuted}" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="PASSWORD" FontSize="10" FontFamily="OpenSansSemibold"
+                               TextColor="Black" CharacterSpacing="1" />
+                        <Border BackgroundColor="White" Stroke="{StaticResource BorderColor}"
+                                StrokeShape="RoundRectangle 12" Padding="12,2" StrokeThickness="1.5">
+                            <Entry Placeholder="Create a password" Text="{Binding Password}" IsPassword="True" ReturnType="Next"
+                                   TextColor="Black" PlaceholderColor="{StaticResource TextMuted}" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="CONFIRM PASSWORD" FontSize="10" FontFamily="OpenSansSemibold"
+                               TextColor="Black" CharacterSpacing="1" />
+                        <Border BackgroundColor="White" Stroke="{StaticResource BorderColor}"
+                                StrokeShape="RoundRectangle 12" Padding="12,2" StrokeThickness="1.5">
+                            <Entry Placeholder="Confirm password" Text="{Binding ConfirmPassword}" IsPassword="True" ReturnType="Done"
+                                   TextColor="Black" PlaceholderColor="{StaticResource TextMuted}" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <Button Text="Create Account"
+                            Command="{Binding SignupCommand}"
+                            BackgroundColor="{StaticResource Primary}" TextColor="White"
+                            FontAttributes="Bold" FontFamily="OpenSansSemibold"
+                            CornerRadius="14" HeightRequest="52" FontSize="16" Margin="0,4,0,0"
+                            IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}" />
+
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
+                                       Color="{StaticResource Primary}" HorizontalOptions="Center" />
+
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+                        <Label Text="Already have an account?" TextColor="{StaticResource TextMuted}" FontSize="14" />
+                        <Label Text="Sign In" TextColor="{StaticResource Primary}" FontAttributes="Bold"
+                               FontFamily="OpenSansSemibold" FontSize="14" TextDecorations="Underline">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding GoToLoginCommand}" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                    </HorizontalStackLayout>
+
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+
+    <!-- Bot Avatar with Welcome -->
+    <VerticalStackLayout HorizontalOptions="End" VerticalOptions="End"
+                         Margin="0,0,18,24" Spacing="8"
+                         x:Name="BotContainer" ZIndex="100">
+        <Border x:Name="BotBubble"
+                BackgroundColor="White"
+                StrokeThickness="1" Stroke="{StaticResource BorderColor}"
+                StrokeShape="RoundRectangle 16"
+                Padding="16,12" HorizontalOptions="End"
+                Opacity="0">
+            <Border.Shadow>
+                <Shadow Brush="#205B5BD6" Offset="0,4" Radius="14" Opacity="0.18" />
+            </Border.Shadow>
+            <Label Text="Welcome! Let's get you started! &#x1F389;"
+                   FontSize="13" FontFamily="OpenSansSemibold"
+                   TextColor="{StaticResource DarkText}"
+                   MaximumWidthRequest="220" />
+        </Border>
+        <Border x:Name="BotAvatar"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 36"
+                HeightRequest="72" WidthRequest="72"
+                HorizontalOptions="End" Opacity="0">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="{StaticResource Primary}" Offset="0.0" />
+                    <GradientStop Color="{StaticResource Secondary}" Offset="1.0" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Shadow>
+                <Shadow Brush="#605B5BD6" Offset="0,6" Radius="20" Opacity="0.5" />
+            </Border.Shadow>
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnBotTapped" />
+            </Border.GestureRecognizers>
+            <Label Text="&#x1F916;" FontSize="34"
+                   HorizontalOptions="Center" VerticalOptions="Center" />
+        </Border>
+    </VerticalStackLayout>
+    </Grid>
+</ContentPage>

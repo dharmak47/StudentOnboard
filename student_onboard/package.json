@@ -1,0 +1,48 @@
+{
+  "name": "edu-admin-portal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Industry-grade student onboarding admin panel",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.3.4",
+    "axios": "^1.6.7",
+    "bootstrap": "^5.3.3",
+    "clsx": "^2.1.0",
+    "date-fns": "^3.3.1",
+    "react": "^18.2.0",
+    "react-bootstrap": "^2.10.1",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.51.0",
+    "react-icons": "^5.6.0",
+    "react-query": "^3.39.3",
+    "react-router-dom": "^6.22.0",
+    "react-scripts": "5.0.1",
+    "react-table": "^7.8.0",
+    "react-toastify": "^10.0.4",
+    "recharts": "^2.12.2",
+    "yup": "^1.3.3"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

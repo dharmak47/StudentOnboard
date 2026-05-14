@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet new:*)",
+      "Read(//d/SOP/StudentOnboardingApp/**)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet list:*)",
+      "Bash(powershell -Command \"Get-Service -Name ''MSSQL*'' | Select-Object Name, Status, DisplayName | Format-Table -AutoSize\")",
+      "Bash(powershell -Command \"Get-ItemProperty ''HKLM:\\\\SOFTWARE\\\\Microsoft\\\\Microsoft SQL Server\\\\Instance Names\\\\SQL'' 2>$null\")",
+      "Bash(powershell -Command \"Invoke-Sqlcmd -ServerInstance ''localhost\\\\SQLEXPRESS'' -Query ''SELECT name FROM sys.databases'' -TrustServerCertificate 2>&1\")",
+      "Bash(powershell -Command \"Invoke-Sqlcmd -ServerInstance ''localhost\\\\SQLEXPRESS'' -Query ''SELECT name FROM sys.databases'' 2>&1\")"
+    ],
+    "additionalDirectories": [
+      "d:\\SOP\\StudentOnboardingApp"
+    ]
+  }
+}

@@ -1,0 +1,40 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:StudentOnboardingApp"
+             xmlns:converters="clr-namespace:StudentOnboardingApp.Converters"
+             x:Class="StudentOnboardingApp.App">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
+                <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Converters -->
+            <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+            <converters:DateTimeFormatConverter x:Key="DateTimeFormatConverter" />
+            <converters:BoolToColorConverter x:Key="ReadBgConverter"
+                                            TrueColor="White"
+                                            FalseColor="#F0EFFF" />
+            <converters:BoolToColorConverter x:Key="BoolToColorConverter"
+                                            TrueColor="{StaticResource SuccessGreen}"
+                                            FalseColor="{StaticResource Gray400}" />
+
+            <!-- IsNotNull Converter (for error message visibility) -->
+            <converters:IsNotNullConverter x:Key="IsNotNullConverter" />
+
+            <!-- Notification type icon converter -->
+            <converters:NotificationIconConverter x:Key="NotificationIconConverter" />
+
+            <!-- BoolToString for password toggle -->
+            <converters:BoolToStringConverter x:Key="BoolToStringConverter"
+                                             TrueValue="Hide"
+                                             FalseValue="Show" />
+            <!-- BoolToString for edit toggle -->
+            <converters:BoolToStringConverter x:Key="EditToggleConverter"
+                                             TrueValue="Cancel"
+                                             FalseValue="Edit" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

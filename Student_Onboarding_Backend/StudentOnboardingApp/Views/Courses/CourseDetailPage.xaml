@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:StudentOnboardingApp.ViewModels"
+             xmlns:models="clr-namespace:StudentOnboardingApp.Models.Course"
+             x:Class="StudentOnboardingApp.Views.Courses.CourseDetailPage"
+             x:DataType="vm:CourseDetailViewModel"
+             Title="{Binding Title}"
+             BackgroundColor="{StaticResource LightBackground}">
+
+    <Grid>
+    <!-- Application Submitted Success Overlay -->
+    <VerticalStackLayout IsVisible="{Binding ApplicationSubmitted}"
+                         VerticalOptions="Center" HorizontalOptions="Center"
+                         Spacing="16" Padding="40">
+        <Border BackgroundColor="{StaticResource SuccessLight}"
+                StrokeThickness="0" StrokeShape="RoundRectangle 40"
+                HeightRequest="80" WidthRequest="80" HorizontalOptions="Center">
+            <Label Text="✅" FontSize="36"
+                   HorizontalOptions="Center" VerticalOptions="Center" />
+        </Border>
+        <Label Text="Application Submitted!"
+               FontSize="24" FontFamily="OpenSansSemibold" FontAttributes="Bold"
+               TextColor="{StaticResource DarkText}" HorizontalOptions="Center" />
+        <Label Text="Your course application has been submitted successfully. Redirecting..."
+               FontSize="14" TextColor="{StaticResource TextSecondary}"
+               HorizontalTextAlignment="Center" />
+        <ActivityIndicator IsRunning="True" Color="{StaticResource Primary}"
+                           HorizontalOptions="Center" Margin="0,10,0,0" />
+    </VerticalStackLayout>
+
+    <ScrollView IsVisible="{Binding ApplicationSubmitted, Converter={StaticResource InverseBoolConverter}}">
+        <VerticalStackLayout Spacing="16" Padding="20">
+
+            <!-- Loading -->
+            <Border BackgroundColor="White" StrokeShape="RoundRectangle 14"
+                    StrokeThickness="0" Padding="16,12" HorizontalOptions="Center"
+                    IsVisible="{Binding IsBusy}">
+                <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                    <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                       Color="{StaticResource Primary}"
+                                       HeightRequest="20" WidthRequest="20" />
+                    <Label Text="Loading course..." FontSize="13"
+                           TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </Border>
+
+            <!-- Error -->
+            <Border BackgroundColor="{StaticResource ErrorLight}"
+                    StrokeShape="RoundRectangle 10" StrokeThickness="0" Padding="14,10"
+                    IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullConverter}}">
+                <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource ErrorText}"
+                       FontSize="13" HorizontalTextAlignment="Center" />
+            </Border>
+
+            <!-- Course Header Card -->
+            <Border StrokeShape="RoundRectangle 18" Padding="24,22" StrokeThickness="0">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="{StaticResource Primary}" Offset="0.0" />
+                        <GradientStop Color="{StaticResource Secondary}" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Border.Shadow>
+                    <Shadow Brush="#405B5BD6" Offset="0,8" Radius="24" Opacity="0.3" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="{Binding Course.Name}"
+                           FontSize="24" FontAttributes="Bold"
+                           FontFamily="OpenSansSemibold" TextColor="White" />
+                    <Label Text="{Binding Course.Description}"
+                           FontSize="14" TextColor="#FFFFFFCC" />
+                    <!-- Rating summary -->
+                    <HorizontalStackLayout Spacing="8" Margin="0,6,0,0">
+                        <Label Text="&#x2B50;" FontSize="16" />
+                        <Label FontSize="14" TextColor="White" FontFamily="OpenSansSemibold">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="{Binding AverageRating, StringFormat='{0:F1}'}" FontAttributes="Bold" />
+                                    <Span Text=" / 5" />
+                                    <Span Text="  (" />
+                                    <Span Text="{Binding TotalReviews}" />
+                                    <Span Text=" reviews)" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Stats Cards -->
+            <Grid ColumnDefinitions="*, *" ColumnSpacing="14">
+                <Border Grid.Column="0" BackgroundColor="White"
+                        StrokeShape="RoundRectangle 16" Stroke="{StaticResource BorderColor}"
+                        Padding="18" StrokeThickness="1">
+                    <Border.Shadow>
+                        <Shadow Brush="#0A5B5BD6" Offset="0,2" Radius="12" Opacity="0.08" />
+                    </Border.Shadow>
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="FEES" FontSize="10" FontFamily="OpenSansSemibold"
+                               TextColor="{StaticResource TextMuted}" CharacterSpacing="0.8" />
+                        <Label Text="{Binding Course.Fees, StringFormat='Rs. {0:N0}'}"
+                               FontSize="22" FontAttributes="Bold"
+                               FontFamily="OpenSansSemibold" TextColor="{StaticResource Primary}" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Column="1" BackgroundColor="White"
+                        StrokeShape="RoundRectangle 16" Stroke="{StaticResource BorderColor}"
+                        Padding="18" StrokeThickness="1">
+                    <Border.Shadow>
+                        <Shadow Brush="#0A5B5BD6" Offset="0,2" Radius="12" Opacity="0.08" />
+                    </Border.Shadow>
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="DURATION" FontSize="10" FontFamily="OpenSansSemibold"
+                               TextColor="{StaticResource TextMuted}" CharacterSpacing="0.8" />
+                        <Label Text="{Binding Course.Duration}"
+                               FontSize="22" FontAttributes="Bold"
+                               FontFamily="OpenSansSemibold" TextColor="{StaticResource Primary}" />
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+            <!-- Syllabus -->
+            <Border BackgroundColor="White" StrokeShape="RoundRectangle 16"
+                    Stroke="{StaticResource BorderColor}" Padding="20" StrokeThickness="1">
+                <Border.Shadow>
+                    <Shadow Brush="#0A5B5BD6" Offset="0,2" Radius="12" Opacity="0.08" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Syllabus" FontSize="17" FontAttributes="Bold"
+                           FontFamily="OpenSansSemibold" TextColor="{StaticResource DarkText}" />
+                    <BoxView HeightRequest="1" Color="{StaticResource BorderColor}" />
+                    <Label Text="{Binding Course.Syllabus}" FontSize="14"
+                           TextColor="{StaticResource TextSecondary}" LineHeight="1.5" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Batch Timings -->
+            <Border BackgroundColor="White" StrokeShape="RoundRectangle 16"
+                    Stroke="{StaticResource BorderColor}" Padding="20" StrokeThickness="1">
+                <Border.Shadow>
+                    <Shadow Brush="#0A5B5BD6" Offset="0,2" Radius="12" Opacity="0.08" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Batch Timings" FontSize="17" FontAttributes="Bold"
+                           FontFamily="OpenSansSemibold" TextColor="{StaticResource DarkText}" />
+                    <BoxView HeightRequest="1" Color="{StaticResource BorderColor}" />
+                    <CollectionView ItemsSource="{Binding Course.BatchTimings}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <HorizontalStackLayout Spacing="10" Padding="0,6">
+                                    <Border BackgroundColor="{StaticResource Primary}"
+                                            StrokeShape="RoundRectangle 4"
+                                            HeightRequest="8" WidthRequest="8"
+                                            StrokeThickness="0" VerticalOptions="Center" />
+                                    <Label Text="{Binding .}" FontSize="14"
+                                           TextColor="{StaticResource TextSecondary}" />
+                                </HorizontalStackLayout>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Reviews Section -->
+            <Border BackgroundColor="White" StrokeShape="RoundRectangle 16"
+                    Stroke="{StaticResource BorderColor}" Padding="20" StrokeThickness="1">
+                <Border.Shadow>
+                    <Shadow Brush="#0A5B5BD6" Offset="0,2" Radius="12" Opacity="0.08" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="14">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <Label Text="Student Reviews" FontSize="17" FontAttributes="Bold"
+                               FontFamily="OpenSansSemibold" TextColor="{StaticResource DarkText}" />
+                        <HorizontalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                            <Label Text="&#x2B50;" FontSize="14" />
+                            <Label FontSize="14" FontFamily="OpenSansSemibold" TextColor="{StaticResource Primary}">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="{Binding AverageRating, StringFormat='{0:F1}'}" FontAttributes="Bold" />
+                                        <Span Text=" ({Binding TotalReviews})" TextColor="{StaticResource TextMuted}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+                        </HorizontalStackLayout>
+                    </Grid>
+                    <BoxView HeightRequest="1" Color="{StaticResource BorderColor}" />
+
+                    <!-- Review list -->
+                    <CollectionView ItemsSource="{Binding Reviews}" HeightRequest="300">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:CourseReviewDto">
+                                <VerticalStackLayout Spacing="6" Padding="0,10">
+                                    <Grid ColumnDefinitions="*, Auto">
+                                        <Label Text="{Binding StudentName}" FontSize="14"
+                                               FontFamily="OpenSansSemibold" FontAttributes="Bold"
+                                               TextColor="{StaticResource DarkText}" />
+                                        <HorizontalStackLayout Grid.Column="1" Spacing="2">
+                                            <Label Text="{Binding Rating, StringFormat='{0} &#x2B50;'}"
+                                                   FontSize="13" TextColor="#F59E0B"
+                                                   FontFamily="OpenSansSemibold" />
+                                        </HorizontalStackLayout>
+                                    </Grid>
+                                    <Label Text="{Binding Remarks}" FontSize="13"
+                                           TextColor="{StaticResource TextSecondary}" LineHeight="1.4" />
+                                    <Label Text="{Binding CreatedAt, StringFormat='{0:MMM dd, yyyy}'}"
+                                           FontSize="11" TextColor="{StaticResource TextMuted}" />
+                                    <BoxView HeightRequest="1" Color="{StaticResource BorderLight}" Margin="0,4,0,0" />
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                        <CollectionView.EmptyView>
+                            <Label Text="No reviews yet. Be the first to review!"
+                                   FontSize="13" TextColor="{StaticResource TextMuted}"
+                                   HorizontalOptions="Center" Margin="0,20" />
+                        </CollectionView.EmptyView>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Already reviewed notice -->
+            <Border BackgroundColor="{StaticResource Surface3}" StrokeShape="RoundRectangle 12"
+                    StrokeThickness="0" Padding="16,12" HorizontalOptions="Center"
+                    IsVisible="{Binding HasReviewed}">
+                <Label Text="&#x2705; You have already reviewed this course."
+                       FontSize="13" TextColor="{StaticResource SuccessText}"
+                       HorizontalTextAlignment="Center" FontFamily="OpenSansSemibold" />
+            </Border>
+
+            <!-- Submit Review (only visible after course completion) -->
+            <Border BackgroundColor="White" StrokeShape="RoundRectangle 16"
+                    Stroke="{StaticResource Primary}" Padding="20" StrokeThickness="1.5"
+                    IsVisible="{Binding CanReview}">
+                <Border.Shadow>
+                    <Shadow Brush="#205B5BD6" Offset="0,4" Radius="16" Opacity="0.12" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="14">
+                    <Label Text="Write a Review" FontSize="17" FontAttributes="Bold"
+                           FontFamily="OpenSansSemibold" TextColor="{StaticResource DarkText}" />
+
+                    <!-- Success Message -->
+                    <Border BackgroundColor="{StaticResource SuccessLight}"
+                            StrokeShape="RoundRectangle 8" StrokeThickness="0" Padding="10,8"
+                            IsVisible="{Binding ReviewSuccessMessage, Converter={StaticResource IsNotNullConverter}}">
+                        <Label Text="{Binding ReviewSuccessMessage}" TextColor="{StaticResource SuccessText}"
+                               FontSize="12" HorizontalTextAlignment="Center" />
+                    </Border>
+
+                    <!-- Star Rating -->
+                    <Label Text="TAP TO RATE" FontSize="10" FontFamily="OpenSansSemibold"
+                           TextColor="{StaticResource TextMuted}" CharacterSpacing="1" />
+                    <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+                        <Label Text="&#x2B50;" FontSize="32" TextColor="{Binding Star1Color}">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SetRatingCommand}" CommandParameter="1" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                        <Label Text="&#x2B50;" FontSize="32" TextColor="{Binding Star2Color}">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SetRatingCommand}" CommandParameter="2" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                        <Label Text="&#x2B50;" FontSize="32" TextColor="{Binding Star3Color}">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SetRatingCommand}" CommandParameter="3" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                        <Label Text="&#x2B50;" FontSize="32" TextColor="{Binding Star4Color}">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SetRatingCommand}" CommandParameter="4" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                        <Label Text="&#x2B50;" FontSize="32" TextColor="{Binding Star5Color}">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SetRatingCommand}" CommandParameter="5" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                    </HorizontalStackLayout>
+
+                    <!-- Remarks -->
+                    <Label Text="REMARKS" FontSize="10" FontFamily="OpenSansSemibold"
+                           TextColor="{StaticResource TextMuted}" CharacterSpacing="1" />
+                    <Border BackgroundColor="{StaticResource LightBackground}"
+                            Stroke="{StaticResource BorderColor}" StrokeShape="RoundRectangle 12"
+                            Padding="12,2" StrokeThickness="1.5">
+                        <Editor Text="{Binding ReviewRemarks}" HeightRequest="80"
+                                TextColor="Black" PlaceholderColor="{StaticResource TextMuted}"
+                                Placeholder="Share your experience with this course..." />
+                    </Border>
+
+                    <!-- Submit Button -->
+                    <Button Text="Submit Review"
+                            Command="{Binding SubmitReviewCommand}"
+                            BackgroundColor="{StaticResource Primary}" TextColor="White"
+                            FontAttributes="Bold" FontFamily="OpenSansSemibold"
+                            CornerRadius="12" HeightRequest="48" FontSize="14"
+                            IsEnabled="{Binding IsSubmittingReview, Converter={StaticResource InverseBoolConverter}}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Applying Indicator -->
+            <Border BackgroundColor="White" StrokeShape="RoundRectangle 14"
+                    StrokeThickness="0" Padding="16,12" HorizontalOptions="Center"
+                    IsVisible="{Binding IsApplying}">
+                <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                    <ActivityIndicator IsRunning="{Binding IsApplying}"
+                                       Color="{StaticResource Primary}"
+                                       HeightRequest="20" WidthRequest="20" />
+                    <Label Text="Submitting application..." FontSize="13"
+                           TextColor="{StaticResource Primary}" VerticalOptions="Center"
+                           FontFamily="OpenSansSemibold" />
+                </HorizontalStackLayout>
+            </Border>
+
+            <!-- Apply Button -->
+            <Button Text="Apply for this Course"
+                    Command="{Binding ApplyCommand}"
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    FontFamily="OpenSansSemibold"
+                    CornerRadius="12"
+                    HeightRequest="52"
+                    FontSize="16"
+                    Margin="0,10,0,20"
+                    IsVisible="{Binding IsApplying, Converter={StaticResource InverseBoolConverter}}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}">
+                <Button.Shadow>
+                    <Shadow Brush="#405B5BD6" Offset="0,4" Radius="14" Opacity="0.25" />
+                </Button.Shadow>
+            </Button>
+
+        </VerticalStackLayout>
+    </ScrollView>
+    </Grid>
+</ContentPage>

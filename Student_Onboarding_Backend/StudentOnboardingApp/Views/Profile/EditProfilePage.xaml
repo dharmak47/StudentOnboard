@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:StudentOnboardingApp.ViewModels"
+             x:Class="StudentOnboardingApp.Views.Profile.EditProfilePage"
+             x:DataType="vm:EditProfileViewModel"
+             Title="Edit Profile"
+             BackgroundColor="{StaticResource LightBackground}">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="16" Padding="20">
+
+            <Border BackgroundColor="{StaticResource ErrorLight}"
+                    StrokeShape="RoundRectangle 10" StrokeThickness="0" Padding="14,10"
+                    IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullConverter}}">
+                <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource ErrorText}"
+                       FontSize="13" HorizontalTextAlignment="Center" />
+            </Border>
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
+                               Color="{StaticResource Primary}" HorizontalOptions="Center" />
+
+            <!-- Form Card -->
+            <Border BackgroundColor="White" StrokeShape="RoundRectangle 18"
+                    Stroke="{StaticResource BorderColor}" Padding="22" StrokeThickness="1">
+                <Border.Shadow>
+                    <Shadow Brush="#0A5B5BD6" Offset="0,2" Radius="12" Opacity="0.08" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="16">
+
+                    <!-- Name Row -->
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="12">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="FIRST NAME" FontSize="11" FontFamily="OpenSansSemibold"
+                                   TextColor="{StaticResource TextSecondary}" CharacterSpacing="1" />
+                            <Border BackgroundColor="{StaticResource LightBackground}"
+                                    Stroke="{StaticResource BorderColor}" StrokeShape="RoundRectangle 12"
+                                    Padding="14,2" StrokeThickness="1.5">
+                                <Entry Text="{Binding FirstName}" ReturnType="Next" />
+                            </Border>
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1" Spacing="6">
+                            <Label Text="LAST NAME" FontSize="11" FontFamily="OpenSansSemibold"
+                                   TextColor="{StaticResource TextSecondary}" CharacterSpacing="1" />
+                            <Border BackgroundColor="{StaticResource LightBackground}"
+                                    Stroke="{StaticResource BorderColor}" StrokeShape="RoundRectangle 12"
+                                    Padding="14,2" StrokeThickness="1.5">
+                                <Entry Text="{Binding LastName}" ReturnType="Next" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="PHONE NUMBER" FontSize="11" FontFamily="OpenSansSemibold"
+                               TextColor="{StaticResource TextSecondary}" CharacterSpacing="1" />
+                        <Border BackgroundColor="{StaticResource LightBackground}"
+                                Stroke="{StaticResource BorderColor}" StrokeShape="RoundRectangle 12"
+                                Padding="14,2" StrokeThickness="1.5">
+                            <Entry Text="{Binding PhoneNumber}" Keyboard="Telephone" ReturnType="Next" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="DATE OF BIRTH" FontSize="11" FontFamily="OpenSansSemibold"
+                               TextColor="{StaticResource TextSecondary}" CharacterSpacing="1" />
+                        <Border BackgroundColor="{StaticResource LightBackground}"
+                                Stroke="{StaticResource BorderColor}" StrokeShape="RoundRectangle 12"
+                                Padding="14,2" StrokeThickness="1.5">
+                            <DatePicker Date="{Binding DateOfBirth}" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="ADDRESS" FontSize="11" FontFamily="OpenSansSemibold"
+                               TextColor="{StaticResource TextSecondary}" CharacterSpacing="1" />
+                        <Border BackgroundColor="{StaticResource LightBackground}"
+                                Stroke="{StaticResource BorderColor}" StrokeShape="RoundRectangle 12"
+                                Padding="14,2" StrokeThickness="1.5">
+                            <Editor Text="{Binding Address}" HeightRequest="80" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="EDUCATION" FontSize="11" FontFamily="OpenSansSemibold"
+                               TextColor="{StaticResource TextSecondary}" CharacterSpacing="1" />
+                        <Border BackgroundColor="{StaticResource LightBackground}"
+                                Stroke="{StaticResource BorderColor}" StrokeShape="RoundRectangle 12"
+                                Padding="14,2" StrokeThickness="1.5">
+                            <Entry Text="{Binding Education}" ReturnType="Done" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Document Upload -->
+            <Button Text="Upload Document"
+                    Command="{Binding UploadDocumentCommand}"
+                    BackgroundColor="White"
+                    TextColor="{StaticResource Primary}"
+                    FontFamily="OpenSansSemibold"
+                    CornerRadius="12"
+                    HeightRequest="48"
+                    BorderWidth="1.5"
+                    BorderColor="{StaticResource BorderColor}">
+                <Button.Shadow>
+                    <Shadow Brush="#0A5B5BD6" Offset="0,2" Radius="8" Opacity="0.06" />
+                </Button.Shadow>
+            </Button>
+
+            <!-- Save Button -->
+            <Button Text="Save Profile"
+                    Command="{Binding SaveProfileCommand}"
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    FontFamily="OpenSansSemibold"
+                    CornerRadius="12"
+                    HeightRequest="52"
+                    FontSize="16"
+                    Margin="0,4,0,20"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

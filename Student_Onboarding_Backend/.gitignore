@@ -1,0 +1,29 @@
+## Build output
+**/bin/
+**/obj/
+
+## Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.slnLaunch.user
+
+## Rider
+.idea/
+
+## Logs
+**/logs/
+
+## App settings (contain secrets)
+**/appsettings.Development.json
+**/appsettings.Production.json
+**/appsettings.json
+
+## OS files
+Thumbs.db
+.DS_Store
+
+## MAUI specific
+**/Platforms/Android/Resources/Resource.designer.cs

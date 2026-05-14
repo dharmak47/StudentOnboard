@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="StudentOnboardingApp.Views.Faq.FaqPage"
+             Title="Help &amp; FAQ"
+             BackgroundColor="{StaticResource LightBackground}"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto, *, Auto">
+
+        <!-- Header -->
+        <Border Grid.Row="0" StrokeThickness="0" StrokeShape="RoundRectangle 0,0,20,20"
+                Padding="24,20,24,22">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="{StaticResource Primary}" Offset="0.0" />
+                    <GradientStop Color="{StaticResource Secondary}" Offset="1.0" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Grid ColumnDefinitions="*, Auto">
+                <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                    <Label Text="Help &amp; FAQ" FontSize="18"
+                           FontFamily="OpenSansSemibold" FontAttributes="Bold"
+                           TextColor="White" />
+                    <Label Text="Find answers to common questions"
+                           FontSize="11" TextColor="#FFFFFFAA" />
+                </VerticalStackLayout>
+                <Border Grid.Column="1" BackgroundColor="Transparent"
+                        StrokeThickness="0"
+                        HeightRequest="40" WidthRequest="40" VerticalOptions="Center">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnCloseTapped" />
+                    </Border.GestureRecognizers>
+                    <Label Text="&#x2715;" FontSize="20" TextColor="White"
+                           HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- FAQ List -->
+        <ScrollView Grid.Row="1" Padding="20,20,20,10">
+            <VerticalStackLayout Spacing="10" x:Name="FaqList">
+
+                <!-- FAQ items are added in code-behind -->
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Contact Footer -->
+        <Border Grid.Row="2" StrokeThickness="0"
+                BackgroundColor="White" Padding="20,16"
+                StrokeShape="RoundRectangle 20,20,0,0">
+            <Border.Shadow>
+                <Shadow Brush="#205B5BD6" Offset="0,-4" Radius="16" Opacity="0.12" />
+            </Border.Shadow>
+            <VerticalStackLayout Spacing="12">
+                <Label Text="Need more help? Contact us:"
+                       FontSize="13" TextColor="{StaticResource TextMuted}"
+                       HorizontalTextAlignment="Center" />
+                <Grid ColumnDefinitions="*, *" ColumnSpacing="12">
+                    <!-- Phone Button -->
+                    <Border Grid.Column="0" BackgroundColor="#F0FDF4"
+                            StrokeThickness="1" Stroke="#DCFCE7"
+                            StrokeShape="RoundRectangle 14" Padding="14,12"
+                            x:Name="PhoneCard">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnPhoneTapped" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                            <Label Text="&#x1F4DE;" FontSize="24"
+                                   HorizontalOptions="Center" />
+                            <Label Text="Call Us" FontSize="13"
+                                   FontFamily="OpenSansSemibold" FontAttributes="Bold"
+                                   TextColor="{StaticResource DarkText}"
+                                   HorizontalOptions="Center" />
+                            <Label Text="+91 98765 43210" FontSize="11"
+                                   TextColor="{StaticResource TextMuted}"
+                                   HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Email Button -->
+                    <Border Grid.Column="1" BackgroundColor="#EEF2FF"
+                            StrokeThickness="1" Stroke="#C7D2FE"
+                            StrokeShape="RoundRectangle 14" Padding="14,12"
+                            x:Name="EmailCard">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnEmailTapped" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                            <Label Text="&#x1F4E7;" FontSize="24"
+                                   HorizontalOptions="Center" />
+                            <Label Text="Email Us" FontSize="13"
+                                   FontFamily="OpenSansSemibold" FontAttributes="Bold"
+                                   TextColor="{StaticResource DarkText}"
+                                   HorizontalOptions="Center" />
+                            <Label Text="support@eduadmin.com" FontSize="11"
+                                   TextColor="{StaticResource TextMuted}"
+                                   HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+            </VerticalStackLayout>
+        </Border>
+
+    </Grid>
+</ContentPage>

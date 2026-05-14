@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:StudentOnboardingApp.ViewModels.Auth"
+             x:Class="StudentOnboardingApp.Views.Auth.OtpVerificationPage"
+             x:DataType="vm:OtpVerificationViewModel"
+             Shell.NavBarIsVisible="False">
+
+    <ContentPage.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="{StaticResource GradientStart}" Offset="0.0" />
+            <GradientStop Color="{StaticResource GradientMid}" Offset="0.4" />
+            <GradientStop Color="{StaticResource GradientEnd}" Offset="1.0" />
+        </LinearGradientBrush>
+    </ContentPage.Background>
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="14" Padding="24" VerticalOptions="Center">
+
+            <!-- Email Icon -->
+            <Border BackgroundColor="#FFFFFF88"
+                    StrokeThickness="0" StrokeShape="RoundRectangle 22"
+                    HeightRequest="60" WidthRequest="60"
+                    HorizontalOptions="Center" Margin="0,20,0,0">
+                <Label Text="&#x1F4E7;" FontSize="28"
+                       HorizontalOptions="Center" VerticalOptions="Center" />
+            </Border>
+
+            <Label Text="Check Your Email"
+                   FontSize="26" FontFamily="OpenSansSemibold" FontAttributes="Bold"
+                   TextColor="{StaticResource DarkText}" HorizontalOptions="Center" />
+
+            <Label FontSize="14" TextColor="{StaticResource TextSecondary}"
+                   HorizontalOptions="Center" HorizontalTextAlignment="Center"
+                   Margin="0,0,0,8">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="We sent a 6-digit code to&#x0a;" />
+                        <Span Text="{Binding Email}" FontAttributes="Bold"
+                              TextColor="{StaticResource DarkText}" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+
+            <!-- Verification Card -->
+            <Border BackgroundColor="#E8FFFFFF"
+                    StrokeShape="RoundRectangle 24" Stroke="#60FFFFFF"
+                    StrokeThickness="1" Padding="24,28">
+                <Border.Shadow>
+                    <Shadow Brush="#205B5BD6" Offset="0,8" Radius="32" Opacity="0.2" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="20">
+
+                    <Label Text="Enter Verification Code"
+                           FontSize="20" FontFamily="OpenSansSemibold" FontAttributes="Bold"
+                           TextColor="{StaticResource DarkText}" HorizontalOptions="Center" />
+
+                    <!-- Error -->
+                    <Border BackgroundColor="{StaticResource ErrorLight}"
+                            StrokeShape="RoundRectangle 10" Stroke="{StaticResource ErrorRed}"
+                            StrokeThickness="1" Padding="12,8"
+                            IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullConverter}}">
+                        <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource ErrorText}"
+                               FontSize="12" HorizontalTextAlignment="Center" />
+                    </Border>
+
+                    <!-- OTP Entry - styled as large spaced digits -->
+                    <Border BackgroundColor="White"
+                            Stroke="{StaticResource BorderColor}"
+                            StrokeShape="RoundRectangle 14"
+                            Padding="8,4" StrokeThickness="1.5">
+                        <Entry Placeholder="0  0  0  0  0  0"
+                               Text="{Binding OtpCode}"
+                               Keyboard="Numeric"
+                               MaxLength="6"
+                               HorizontalTextAlignment="Center"
+                               FontSize="28"
+                               FontFamily="OpenSansSemibold"
+                               CharacterSpacing="16"
+                               TextColor="Black"
+                               PlaceholderColor="{StaticResource TextMuted}"
+                               ReturnType="Done" />
+                    </Border>
+
+                    <!-- Verify Button -->
+                    <Button Text="Verify Code"
+                            Command="{Binding VerifyCommand}"
+                            BackgroundColor="{StaticResource Primary}"
+                            TextColor="White" FontAttributes="Bold"
+                            FontFamily="OpenSansSemibold"
+                            CornerRadius="14" HeightRequest="52" FontSize="16"
+                            IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}" />
+
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
+                                       Color="{StaticResource Primary}" HorizontalOptions="Center" />
+
+                    <!-- Resend -->
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+                        <Label Text="Didn't receive the code?" TextColor="{StaticResource TextMuted}" FontSize="14" />
+                        <Label TextColor="{StaticResource Primary}" FontAttributes="Bold"
+                               FontFamily="OpenSansSemibold" FontSize="14"
+                               TextDecorations="Underline" IsVisible="{Binding CanResend}">
+                            <Label.Text>Resend Code</Label.Text>
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ResendOtpCommand}" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                        <Label Text="{Binding ResendCountdown, StringFormat='Resend in {0}s'}"
+                               TextColor="{StaticResource TextMuted}" FontSize="14"
+                               IsVisible="{Binding CanResend, Converter={StaticResource InverseBoolConverter}}" />
+                    </HorizontalStackLayout>
+
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

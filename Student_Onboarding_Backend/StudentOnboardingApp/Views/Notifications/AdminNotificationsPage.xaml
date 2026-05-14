@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:StudentOnboardingApp.ViewModels"
+             xmlns:models="clr-namespace:StudentOnboardingApp.Models.Notification"
+             x:Class="StudentOnboardingApp.Views.Notifications.AdminNotificationsPage"
+             x:DataType="vm:AdminNotificationsViewModel"
+             Title="Notifications"
+             BackgroundColor="{StaticResource LightBackground}">
+
+    <RefreshView IsRefreshing="{Binding IsRefreshing}"
+                 Command="{Binding LoadNotificationsCommand}"
+                 RefreshColor="{StaticResource Primary}">
+        <ScrollView>
+            <VerticalStackLayout Spacing="0" Padding="20,20,20,12">
+
+                <!-- Header -->
+                <Grid ColumnDefinitions="Auto, *" ColumnSpacing="12" Margin="0,0,0,16">
+                    <Border BackgroundColor="{StaticResource Primary}"
+                            StrokeThickness="0" StrokeShape="RoundRectangle 3"
+                            WidthRequest="4" VerticalOptions="Fill" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="4">
+                        <Label Text="Notifications"
+                               FontSize="26"
+                               FontFamily="OpenSansSemibold"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource DarkText}" />
+                        <Label Text="Manage and send notifications to students"
+                               FontSize="14"
+                               TextColor="{StaticResource TextMuted}" />
+                    </VerticalStackLayout>
+                </Grid>
+
+                <!-- Send Notification Card -->
+                <Border BackgroundColor="White"
+                        StrokeShape="RoundRectangle 18"
+                        Stroke="{StaticResource BorderColor}"
+                        Padding="0" StrokeThickness="1"
+                        Margin="0,0,0,20">
+                    <Border.Shadow>
+                        <Shadow Brush="#145B5BD6" Offset="0,4" Radius="16" Opacity="0.12" />
+                    </Border.Shadow>
+                    <VerticalStackLayout Spacing="0">
+
+                        <!-- Send Notification Header (tappable) -->
+                        <Border StrokeThickness="0" StrokeShape="RoundRectangle 18,18,0,0"
+                                Padding="20,18">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="{StaticResource Primary}" Offset="0.0" />
+                                    <GradientStop Color="{StaticResource Secondary}" Offset="1.0" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ToggleSendFormCommand}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="14">
+                                <Border BackgroundColor="#FFFFFF30"
+                                        StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                                        HeightRequest="40" WidthRequest="40">
+                                    <Label Text="&#x1F4E8;" FontSize="20"
+                                           HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                    <Label Text="Send Notification"
+                                           FontSize="17" FontFamily="OpenSansSemibold"
+                                           FontAttributes="Bold" TextColor="White" />
+                                    <Label Text="Broadcast a message to students"
+                                           FontSize="12" TextColor="#FFFFFFBB" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="2"
+                                       Text="{Binding ShowSendForm, Converter={StaticResource InverseBoolConverter}, StringFormat='{0}'}"
+                                       FontSize="16" TextColor="White"
+                                       VerticalOptions="Center"
+                                       IsVisible="False" />
+                                <Border Grid.Column="2" BackgroundColor="#FFFFFF30"
+                                        StrokeThickness="0" StrokeShape="RoundRectangle 10"
+                                        HeightRequest="32" WidthRequest="32"
+                                        VerticalOptions="Center">
+                                    <Label Text="&#x25BC;" FontSize="12" TextColor="White"
+                                           HorizontalOptions="Center" VerticalOptions="Center"
+                                           IsVisible="{Binding ShowSendForm, Converter={StaticResource InverseBoolConverter}}" />
+                                    <Label Text="&#x25B2;" FontSize="12" TextColor="White"
+                                           HorizontalOptions="Center" VerticalOptions="Center"
+                                           IsVisible="{Binding ShowSendForm}" />
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- Expandable Send Form -->
+                        <VerticalStackLayout Spacing="16" Padding="20"
+                                             IsVisible="{Binding ShowSendForm}">
+
+                            <!-- Success Message -->
+                            <Border BackgroundColor="{StaticResource SuccessLight}"
+                                    StrokeShape="RoundRectangle 10" StrokeThickness="0" Padding="14,10"
+                                    IsVisible="{Binding SuccessMessage, Converter={StaticResource IsNotNullConverter}}">
+                                <Label Text="{Binding SuccessMessage}" TextColor="{StaticResource SuccessText}"
+                                       FontSize="13" HorizontalTextAlignment="Center" />
+                            </Border>
+
+                            <!-- Error Message -->
+                            <Border BackgroundColor="{StaticResource ErrorLight}"
+                                    StrokeShape="RoundRectangle 10" StrokeThickness="0" Padding="14,10"
+                                    IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullConverter}}">
+                                <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource ErrorText}"
+                                       FontSize="13" HorizontalTextAlignment="Center" />
+                            </Border>
+
+                            <!-- Title Field -->
+                            <VerticalStackLayout Spacing="5">
+                                <Label Text="TITLE" FontSize="10" FontFamily="OpenSansSemibold"
+                                       TextColor="Black" CharacterSpacing="1" />
+                                <Border BackgroundColor="{StaticResource LightBackground}"
+                                        Stroke="{StaticResource BorderColor}" StrokeShape="RoundRectangle 12"
+                                        Padding="12,2" StrokeThickness="1.5">
+                                    <Entry Text="{Binding NotificationTitle}"
+                                           Placeholder="Enter notification title"
+                                           PlaceholderColor="{StaticResource TextMuted}"
+                                           TextColor="Black" ReturnType="Next" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!-- Message Field -->
+                            <VerticalStackLayout Spacing="5">
+                                <Label Text="MESSAGE" FontSize="10" FontFamily="OpenSansSemibold"
+                                       TextColor="Black" CharacterSpacing="1" />
+                                <Border BackgroundColor="{StaticResource LightBackground}"
+                                        Stroke="{StaticResource BorderColor}" StrokeShape="RoundRectangle 12"
+                                        Padding="12,2" StrokeThickness="1.5">
+                                    <Editor Text="{Binding NotificationMessage}"
+                                            Placeholder="Enter notification message"
+                                            PlaceholderColor="{StaticResource TextMuted}"
+                                            TextColor="Black" HeightRequest="100"
+                                            AutoSize="TextChanges" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!-- Send Button -->
+                            <Button Text="Send to All Students"
+                                    Command="{Binding SendNotificationCommand}"
+                                    BackgroundColor="{StaticResource Primary}"
+                                    TextColor="White" FontAttributes="Bold"
+                                    FontFamily="OpenSansSemibold"
+                                    CornerRadius="12" HeightRequest="50" FontSize="15"
+                                    IsEnabled="{Binding IsSending, Converter={StaticResource InverseBoolConverter}}">
+                                <Button.Shadow>
+                                    <Shadow Brush="#405B5BD6" Offset="0,4" Radius="14" Opacity="0.25" />
+                                </Button.Shadow>
+                            </Button>
+
+                            <!-- Sending Indicator -->
+                            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center"
+                                                   IsVisible="{Binding IsSending}">
+                                <ActivityIndicator IsRunning="{Binding IsSending}"
+                                                   Color="{StaticResource Primary}"
+                                                   HeightRequest="20" WidthRequest="20" />
+                                <Label Text="Sending notification..."
+                                       FontSize="13" TextColor="{StaticResource TextMuted}"
+                                       VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Unread count + Mark all read -->
+                <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,12">
+                    <Border BackgroundColor="#EEF0FF"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 10"
+                            Padding="12,6"
+                            HorizontalOptions="Start">
+                        <Label FontSize="12" TextColor="{StaticResource Primary}" FontFamily="OpenSansSemibold">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="{Binding UnreadCount}" FontAttributes="Bold" />
+                                    <Span Text=" unread notifications" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                    </Border>
+
+                    <Border Grid.Column="1"
+                            BackgroundColor="{StaticResource Surface3}"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 12"
+                            Padding="14,8"
+                            VerticalOptions="Center"
+                            IsVisible="{Binding UnreadCount, Converter={StaticResource IsNotNullConverter}}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding MarkAllAsReadCommand}" />
+                        </Border.GestureRecognizers>
+                        <Label Text="Mark all read"
+                               FontSize="12"
+                               FontFamily="OpenSansSemibold"
+                               TextColor="{StaticResource Primary}" />
+                    </Border>
+                </Grid>
+
+                <!-- Loading -->
+                <Border BackgroundColor="White" StrokeShape="RoundRectangle 14"
+                        StrokeThickness="0" Padding="16,12" Margin="0,6,0,0"
+                        HorizontalOptions="Center"
+                        IsVisible="{Binding IsBusy}">
+                    <Border.Shadow>
+                        <Shadow Brush="#145B5BD6" Offset="0,2" Radius="8" Opacity="0.1" />
+                    </Border.Shadow>
+                    <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                        <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                           Color="{StaticResource Primary}"
+                                           HeightRequest="20" WidthRequest="20" />
+                        <Label Text="Loading notifications..."
+                               FontSize="13" TextColor="{StaticResource TextMuted}"
+                               VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </Border>
+
+                <!-- Notifications List -->
+                <CollectionView ItemsSource="{Binding Notifications}"
+                                SelectionMode="None">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:NotificationDto">
+                            <Border BackgroundColor="{Binding IsRead, Converter={StaticResource ReadBgConverter}}"
+                                    StrokeShape="RoundRectangle 16"
+                                    Stroke="{StaticResource BorderColor}"
+                                    Padding="18"
+                                    Margin="0,0,0,12"
+                                    StrokeThickness="1">
+                                <Border.Shadow>
+                                    <Shadow Brush="#0A5B5BD6" Offset="0,2" Radius="10" Opacity="0.06" />
+                                </Border.Shadow>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AdminNotificationsViewModel}}, Path=MarkAsReadCommand}"
+                                        CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="Auto, *" ColumnSpacing="14">
+                                    <Border StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 20"
+                                            HeightRequest="42" WidthRequest="42"
+                                            VerticalOptions="Start"
+                                            BackgroundColor="{StaticResource Surface3}">
+                                        <Label Text="{Binding Type, Converter={StaticResource NotificationIconConverter}}"
+                                               FontSize="20"
+                                               HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Border>
+
+                                    <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                        <Grid ColumnDefinitions="*, Auto">
+                                            <Label Text="{Binding Title}"
+                                                   FontSize="15"
+                                                   FontFamily="OpenSansSemibold"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{StaticResource DarkText}"
+                                                   LineBreakMode="TailTruncation" />
+                                            <Border Grid.Column="1"
+                                                    BackgroundColor="{StaticResource Primary}"
+                                                    StrokeShape="RoundRectangle 6"
+                                                    HeightRequest="12" WidthRequest="12"
+                                                    StrokeThickness="0"
+                                                    VerticalOptions="Center"
+                                                    IsVisible="{Binding IsRead, Converter={StaticResource InverseBoolConverter}}" />
+                                        </Grid>
+                                        <Label Text="{Binding Body}"
+                                               FontSize="13"
+                                               TextColor="{StaticResource TextSecondary}"
+                                               LineBreakMode="TailTruncation"
+                                               MaxLines="2" />
+                                        <Label Text="{Binding TimeAgo}"
+                                               FontSize="11"
+                                               TextColor="{StaticResource TextMuted}" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center"
+                                             Padding="40" Spacing="16">
+                            <Border BackgroundColor="{StaticResource Surface3}"
+                                    StrokeThickness="0" StrokeShape="RoundRectangle 40"
+                                    HeightRequest="80" WidthRequest="80" HorizontalOptions="Center">
+                                <Label Text="&#x1F514;" FontSize="36"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <Label Text="No notifications yet"
+                                   FontSize="18" FontFamily="OpenSansSemibold"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource DarkText}"
+                                   HorizontalOptions="Center" />
+                            <Label Text="Send your first notification to students using the form above."
+                                   FontSize="14" TextColor="{StaticResource TextMuted}"
+                                   HorizontalTextAlignment="Center"
+                                   HorizontalOptions="Center" LineHeight="1.4" />
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+                </CollectionView>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>

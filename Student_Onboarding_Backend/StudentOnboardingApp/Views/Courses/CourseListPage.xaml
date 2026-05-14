@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:StudentOnboardingApp.ViewModels"
+             xmlns:models="clr-namespace:StudentOnboardingApp.Models.Course"
+             x:Class="StudentOnboardingApp.Views.Courses.CourseListPage"
+             x:DataType="vm:CourseListViewModel"
+             Title="Courses"
+             BackgroundColor="{StaticResource LightBackground}">
+
+    <RefreshView IsRefreshing="{Binding IsRefreshing}"
+                 Command="{Binding LoadCoursesCommand}"
+                 RefreshColor="{StaticResource Primary}">
+        <CollectionView ItemsSource="{Binding Courses}" SelectionMode="None"
+                        x:Name="CoursesCollection">
+            <!-- Single column on mobile for full-width cards -->
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical"
+                                   ItemSpacing="16" />
+            </CollectionView.ItemsLayout>
+
+            <CollectionView.Header>
+                <VerticalStackLayout Padding="20,44,20,16" Spacing="6">
+                    <!-- Header with blue accent bar -->
+                    <Grid ColumnDefinitions="Auto, *" ColumnSpacing="12" x:Name="HeaderSection">
+                        <Border BackgroundColor="{StaticResource Primary}"
+                                StrokeThickness="0" StrokeShape="RoundRectangle 3"
+                                WidthRequest="4" VerticalOptions="Fill" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="4">
+                            <Label Text="Explore Courses"
+                                   FontSize="26" FontFamily="OpenSansSemibold"
+                                   FontAttributes="Bold" TextColor="{StaticResource DarkText}"
+                                   x:Name="HeaderTitle" />
+                            <Label Text="Find the perfect course for your career"
+                                   FontSize="14" TextColor="{StaticResource TextMuted}"
+                                   x:Name="HeaderSubtitle" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <!-- Error -->
+                    <Border BackgroundColor="{StaticResource ErrorLight}"
+                            StrokeShape="RoundRectangle 10" StrokeThickness="0" Padding="14,10"
+                            Margin="0,8,0,0"
+                            IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullConverter}}">
+                        <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource ErrorText}"
+                               FontSize="13" HorizontalTextAlignment="Center" />
+                    </Border>
+
+                    <!-- Loading — spaced out in its own card -->
+                    <Border BackgroundColor="White" StrokeShape="RoundRectangle 14"
+                            StrokeThickness="0" Padding="16,12" Margin="0,8,0,0"
+                            HorizontalOptions="Center"
+                            IsVisible="{Binding IsBusy}">
+                        <Border.Shadow>
+                            <Shadow Brush="#145B5BD6" Offset="0,2" Radius="8" Opacity="0.1" />
+                        </Border.Shadow>
+                        <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                               Color="{StaticResource Primary}"
+                                               HeightRequest="20" WidthRequest="20" />
+                            <Label Text="Loading courses..."
+                                   FontSize="13" TextColor="{StaticResource TextMuted}"
+                                   VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </CollectionView.Header>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:CourseDto">
+                    <Border BackgroundColor="White"
+                            StrokeShape="RoundRectangle 18"
+                            Stroke="{StaticResource BorderLight}"
+                            Padding="0" Margin="20,0" StrokeThickness="1">
+                        <Border.Shadow>
+                            <Shadow Brush="#145B5BD6" Offset="0,4" Radius="16" Opacity="0.10" />
+                        </Border.Shadow>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CourseListViewModel}}, Path=GoToCourseDetailCommand}"
+                                CommandParameter="{Binding .}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="0">
+
+                            <!-- Card Header with category + thumbnail -->
+                            <Grid BackgroundColor="{StaticResource Surface2}"
+                                  Padding="16,14" ColumnDefinitions="Auto, *, Auto">
+                                <!-- Thumbnail emoji icon -->
+                                <Border BackgroundColor="{StaticResource Tertiary}"
+                                        StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                                        HeightRequest="44" WidthRequest="44"
+                                        VerticalOptions="Center">
+                                    <Label Text="{Binding DisplayThumbnail}"
+                                           FontSize="22"
+                                           HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+
+                                <!-- Category badge -->
+                                <Border Grid.Column="1"
+                                        BackgroundColor="{StaticResource Surface3}"
+                                        StrokeThickness="0" StrokeShape="RoundRectangle 10"
+                                        Padding="8,4" HorizontalOptions="Start"
+                                        VerticalOptions="Center" Margin="10,0,0,0"
+                                        IsVisible="{Binding HasCategory}">
+                                    <Label Text="{Binding DisplayCategory}"
+                                           FontSize="10" FontFamily="OpenSansSemibold"
+                                           TextColor="{StaticResource Primary}" />
+                                </Border>
+
+                                <!-- Duration badge -->
+                                <Border Grid.Column="2"
+                                        BackgroundColor="{StaticResource Primary}"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 10"
+                                        Padding="8,4"
+                                        VerticalOptions="Center">
+                                    <Label Text="{Binding Duration}"
+                                           FontSize="10" FontFamily="OpenSansSemibold"
+                                           TextColor="White" />
+                                </Border>
+                            </Grid>
+
+                            <!-- Divider -->
+                            <BoxView HeightRequest="1" Color="{StaticResource BorderLight}" />
+
+                            <!-- Card Body -->
+                            <VerticalStackLayout Padding="16,14" Spacing="8">
+                                <!-- Title -->
+                                <Label Text="{Binding Name}"
+                                       FontSize="15" FontFamily="OpenSansSemibold"
+                                       FontAttributes="Bold" TextColor="{StaticResource DarkText}"
+                                       LineBreakMode="TailTruncation" MaxLines="2" />
+
+                                <!-- Instructor -->
+                                <HorizontalStackLayout Spacing="6" IsVisible="{Binding HasInstructor}">
+                                    <Label Text="👤" FontSize="12" VerticalOptions="Center" />
+                                    <Label Text="{Binding DisplayInstructor}"
+                                           FontSize="12" TextColor="{StaticResource TextMuted}"
+                                           FontFamily="OpenSansSemibold" VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+
+                                <!-- Description -->
+                                <Label Text="{Binding Description}"
+                                       FontSize="12" TextColor="{StaticResource TextSecondary}"
+                                       LineBreakMode="TailTruncation" MaxLines="2" LineHeight="1.3" />
+
+                                <!-- Price row -->
+                                <HorizontalStackLayout Spacing="8" Margin="0,4,0,0">
+                                    <!-- Main price -->
+                                    <Border BackgroundColor="{StaticResource Surface3}"
+                                            StrokeThickness="0" StrokeShape="RoundRectangle 8"
+                                            Padding="10,5" HorizontalOptions="Start">
+                                        <Label FontSize="13" TextColor="{StaticResource Primary}"
+                                               FontFamily="OpenSansSemibold" FontAttributes="Bold">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="₹ " />
+                                                    <Span Text="{Binding Fees, StringFormat='{0:N0}'}" />
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                    </Border>
+
+                                    <!-- Offer price -->
+                                    <Label IsVisible="{Binding HasOfferPrice}"
+                                           VerticalOptions="Center"
+                                           FontSize="11" TextColor="{StaticResource TextMuted}"
+                                           TextDecorations="Strikethrough">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="₹ " />
+                                                <Span Text="{Binding OfferPrice, StringFormat='{0:N0}'}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                </HorizontalStackLayout>
+
+                                <!-- Spacer to push footer to bottom -->
+                                <BoxView HeightRequest="0" VerticalOptions="FillAndExpand" Color="Transparent" />
+
+                                <!-- Divider -->
+                                <BoxView HeightRequest="1" Color="{StaticResource BorderLight}" />
+
+                                <!-- Footer: View Details + arrow -->
+                                <Grid ColumnDefinitions="*, Auto" Margin="0,4,0,0">
+                                    <Label Text="View Details"
+                                           FontSize="12" TextColor="{StaticResource Primary}"
+                                           FontFamily="OpenSansSemibold"
+                                           VerticalOptions="Center" />
+                                    <Border Grid.Column="1" BackgroundColor="{StaticResource Surface3}"
+                                            StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                                            HeightRequest="26" WidthRequest="26">
+                                        <Label Text="›" FontSize="16" TextColor="{StaticResource Primary}"
+                                               FontAttributes="Bold"
+                                               HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Border>
+                                </Grid>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+            <CollectionView.EmptyView>
+                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Padding="40" Spacing="14">
+                    <Border BackgroundColor="{StaticResource Surface3}"
+                            StrokeThickness="0" StrokeShape="RoundRectangle 30"
+                            HeightRequest="70" WidthRequest="70" HorizontalOptions="Center">
+                        <Label Text="&#x1F4DA;" FontSize="32"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <Label Text="No courses available"
+                           FontSize="16" FontFamily="OpenSansSemibold"
+                           TextColor="{StaticResource TextMuted}" HorizontalOptions="Center" />
+                    <Label Text="Check back later for new courses"
+                           FontSize="14" TextColor="{StaticResource TextMuted}"
+                           HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+        </CollectionView>
+    </RefreshView>
+</ContentPage>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="StudentOnboardingApp.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:auth="clr-namespace:StudentOnboardingApp.Views.Auth"
+    xmlns:onboarding="clr-namespace:StudentOnboardingApp.Views.Onboarding"
+    xmlns:dashboard="clr-namespace:StudentOnboardingApp.Views.Dashboard"
+    xmlns:courses="clr-namespace:StudentOnboardingApp.Views.Courses"
+    xmlns:profile="clr-namespace:StudentOnboardingApp.Views.Profile"
+    xmlns:notifications="clr-namespace:StudentOnboardingApp.Views.Notifications"
+    Title="Student Onboarding"
+    Shell.FlyoutBehavior="Disabled">
+
+    <!-- Auth Flow - Login as initial page (wrapped in TabBar so Shell treats it as a proper section) -->
+    <TabBar Route="auth">
+        <ShellContent Route="login"
+                      ContentTemplate="{DataTemplate auth:LoginPage}"
+                      Shell.NavBarIsVisible="False"
+                      Shell.TabBarIsVisible="False" />
+    </TabBar>
+
+    <!-- Student Main App with Tab Bar -->
+    <TabBar Route="main" Shell.NavBarIsVisible="False">
+        <ShellContent Title="Dashboard"
+                      Icon="dashboard.png"
+                      Route="dashboard"
+                      ContentTemplate="{DataTemplate dashboard:DashboardPage}" />
+        <ShellContent Title="Courses"
+                      Icon="courses.png"
+                      Route="courses"
+                      ContentTemplate="{DataTemplate courses:CourseListPage}" />
+        <ShellContent Title="Profile"
+                      Icon="profile.png"
+                      Route="profile"
+                      ContentTemplate="{DataTemplate profile:ProfilePage}" />
+        <ShellContent x:Name="alertsTab"
+                      Title="Alerts"
+                      Icon="notifications.png"
+                      Route="notifications"
+                      ContentTemplate="{DataTemplate notifications:NotificationsPage}" />
+    </TabBar>
+
+    <!-- Admin Main App with Tab Bar -->
+    <TabBar Route="admin" Shell.NavBarIsVisible="False">
+        <ShellContent Title="Dashboard"
+                      Icon="dashboard.png"
+                      Route="dashboard"
+                      ContentTemplate="{DataTemplate dashboard:DashboardPage}" />
+        <ShellContent Title="Courses"
+                      Icon="courses.png"
+                      Route="courses"
+                      ContentTemplate="{DataTemplate courses:CourseListPage}" />
+        <ShellContent Title="Notifications"
+                      Icon="notifications.png"
+                      Route="admin-notifications"
+                      ContentTemplate="{DataTemplate notifications:AdminNotificationsPage}" />
+        <ShellContent Title="Profile"
+                      Icon="profile.png"
+                      Route="profile"
+                      ContentTemplate="{DataTemplate profile:ProfilePage}" />
+    </TabBar>
+
+</Shell>

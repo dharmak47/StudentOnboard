@@ -1,0 +1,416 @@
+Authentication & User Management Database Design
+Platform
+
+E-commerce Web + Mobile Application
+
+Database
+
+Microsoft SQL Server
+
+Architecture Goal
+
+The authentication system is designed to support:
+
+Email & Password login
+
+OTP verification (email/phone)
+
+Session management using Refresh Tokens
+
+Login security monitoring
+
+Future Social Login integration
+
+The system follows a token-based authentication model using JWT + Refresh Tokens.
+
+Database Tables Overview
+Table	Purpose
+Users	Stores user account information
+UserSessions	Manages refresh tokens and active login sessions
+OtpVerifications	Stores OTP records for verification flows
+LoginAttempts	Tracks login attempts for security monitoring
+UserSocialLogins	Links users with social login providers (future support)
+1 Users Table
+Purpose
+
+Stores the primary user account information for the platform.
+
+SQL Server Table
+CREATE TABLE Users (
+    Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    FirstName VARCHAR(100),
+    LastName VARCHAR(100),
+
+    Email VARCHAR(255) UNIQUE,
+    PhoneNumber VARCHAR(20) UNIQUE,
+
+    PasswordHash TEXT,
+
+    EmailVerified BOOLEAN DEFAULT FALSE,
+    PhoneVerified BOOLEAN DEFAULT FALSE,
+
+    IsActive BOOLEAN DEFAULT TRUE,
+    IsDeleted BOOLEAN DEFAULT FALSE,
+
+    Role VARCHAR(20) DEFAULT 'Customer',
+
+    PasswordUpdatedAt TIMESTAMP,
+
+    CreatedAt TIMESTAMP DEFAULT NOW(),
+    UpdatedAt TIMESTAMP,
+    LastLoginAt TIMESTAMP
+);
+Important Columns Explained
+PasswordHash
+
+Stores the secure hashed password using algorithms like:
+
+BCrypt
+
+Argon2
+
+Passwords are never stored as plain text.
+
+EmailVerified / PhoneVerified
+
+Boolean flags used to confirm that the user has completed OTP verification.
+
+Example usage:
+
+EmailVerified = 0 → User must verify email
+EmailVerified = 1 → User is verified
+IsDeleted (Soft Delete)
+
+Instead of deleting records permanently, users are marked as deleted.
+
+IsDeleted = 1
+
+Benefits:
+
+Prevents data loss
+
+Keeps order history intact
+
+Supports account recovery
+
+PasswordUpdatedAt
+
+Used for security enforcement.
+
+Example scenario:
+
+If a password reset occurs:
+
+All previous sessions can be invalidated
+2 UserSessions Table
+Purpose
+
+Stores refresh tokens and device session information.
+
+Each login creates a new session record.
+
+This enables:
+
+Multiple device login
+
+Session revocation
+
+Token rotation
+
+SQL Server Table
+CREATE TABLE UserSessions (
+
+    Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    UserId UUID NOT NULL,
+
+    RefreshToken TEXT NOT NULL,
+
+    DeviceType VARCHAR(20),
+    DeviceName VARCHAR(200),
+
+    IpAddress VARCHAR(50),
+    UserAgent TEXT,
+
+    ExpiresAt TIMESTAMP NOT NULL,
+
+    IsRevoked BOOLEAN DEFAULT FALSE,
+
+    CreatedAt TIMESTAMP DEFAULT NOW(),
+    LastUsedAt TIMESTAMP,
+
+    CONSTRAINT fk_usersessions_user
+    FOREIGN KEY (UserId) REFERENCES Users(Id)
+);
+Important Columns Explained
+RefreshToken
+
+Used to generate new JWT access tokens.
+
+Flow:
+
+Login → AccessToken + RefreshToken
+AccessToken expires → RefreshToken generates new AccessToken
+DeviceType
+
+Helps identify the device:
+
+Web
+Android
+iOS
+
+Useful for session management dashboards.
+
+UserAgent
+
+Stores browser/device information such as:
+
+Chrome Windows
+Safari iPhone
+Android App
+
+Useful for:
+
+Security monitoring
+
+Suspicious login detection
+
+IsRevoked
+
+Indicates if a session has been manually invalidated.
+
+Example:
+
+User logs out
+Admin terminates session
+Password reset
+3 OtpVerifications Table
+Purpose
+
+Handles OTP based verification flows.
+
+Used for:
+
+Email verification
+
+Phone verification
+
+Password reset
+
+Login verification
+
+SQL Server Table
+CREATE TABLE OtpVerifications (
+
+    Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    UserId UUID,
+
+    Email VARCHAR(255),
+    PhoneNumber VARCHAR(20),
+
+    OtpCode VARCHAR(10) NOT NULL,
+
+    OtpType VARCHAR(50),
+
+    AttemptCount INT DEFAULT 0,
+    MaxAttempts INT DEFAULT 5,
+
+    ExpiresAt TIMESTAMP NOT NULL,
+
+    IsUsed BOOLEAN DEFAULT FALSE,
+
+    CreatedAt TIMESTAMP DEFAULT NOW(),
+
+    CONSTRAINT fk_otp_user
+    FOREIGN KEY (UserId) REFERENCES Users(Id)
+);
+Important Columns Explained
+OtpType
+
+Defines the purpose of the OTP.
+
+Examples:
+
+EmailVerification
+PhoneVerification
+PasswordReset
+LoginVerification
+
+This allows one OTP table to support multiple workflows.
+
+AttemptCount & MaxAttempts
+
+Protects against OTP brute force attacks.
+
+Example rule:
+
+MaxAttempts = 5
+
+After 5 incorrect entries:
+
+OTP becomes invalid
+ExpiresAt
+
+OTP expiration time.
+
+Typical configuration:
+
+5 minutes
+
+Expired OTP cannot be used.
+
+4 LoginAttempts Table
+Purpose
+
+Tracks login attempts for security monitoring and attack detection.
+
+SQL Server Table
+CREATE TABLE LoginAttempts (
+
+    Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    Email VARCHAR(255),
+
+    IpAddress VARCHAR(50),
+
+    UserAgent TEXT,
+
+    IsSuccessful BOOLEAN,
+
+    FailureReason VARCHAR(100),
+
+    AttemptedAt TIMESTAMP DEFAULT NOW()
+);
+Important Columns Explained
+FailureReason
+
+Helps diagnose login issues.
+
+Examples:
+
+InvalidPassword
+UserNotFound
+AccountLocked
+AccountInactive
+
+Useful for:
+
+security audits
+
+fraud detection
+
+analytics
+
+5 UserSocialLogins Table (Future Social Login Support)
+Purpose
+
+Supports login via external providers such as:
+
+Google
+
+Apple
+
+Facebook
+
+This table links a platform user account with a provider account.
+
+SQL Server Table
+CREATE TABLE UserSocialLogins (
+
+    Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    UserId UUID NOT NULL,
+
+    Provider VARCHAR(50) NOT NULL,
+
+    ProviderUserId VARCHAR(255) NOT NULL,
+
+    Email VARCHAR(255),
+
+    CreatedAt TIMESTAMP DEFAULT NOW(),
+
+    CONSTRAINT fk_social_user
+    FOREIGN KEY (UserId) REFERENCES Users(Id)
+);
+Important Columns Explained
+Provider
+
+Indicates the external login provider.
+
+Example values:
+
+Google
+Apple
+Facebook
+ProviderUserId
+
+Unique user identifier provided by the external platform.
+
+Example:
+
+Google user ID
+Apple subject ID
+Facebook user ID
+
+This allows multiple login providers to map to a single user account.
+
+Recommended Database Indexes
+
+To improve authentication performance, the following indexes should be created.
+
+CREATE INDEX idx_users_email ON Users(Email);
+CREATE INDEX idx_users_phone ON Users(PhoneNumber);
+
+CREATE INDEX idx_sessions_userid ON UserSessions(UserId);
+CREATE INDEX idx_sessions_refreshtoken ON UserSessions(RefreshToken);
+
+CREATE INDEX idx_otp_email ON OtpVerifications(Email);
+CREATE INDEX idx_otp_phone ON OtpVerifications(PhoneNumber);
+
+CREATE INDEX idx_login_email ON LoginAttempts(Email);
+Authentication Flow Overview
+User Signup
+User registers
+↓
+Create Users record
+↓
+Send OTP
+↓
+Insert OtpVerification
+↓
+User verifies OTP
+↓
+EmailVerified = true
+User Login
+User submits credentials
+↓
+Validate password
+↓
+Insert LoginAttempt
+↓
+Create UserSession
+↓
+Return AccessToken + RefreshToken
+Token Refresh
+Client sends RefreshToken
+↓
+Validate UserSessions record
+↓
+Generate new AccessToken
+Final Notes
+
+This authentication system provides:
+
+Secure password storage
+
+Multi-device session management
+
+OTP based verification
+
+Security monitoring
+
+Future social login support
+
+The architecture is suitable for modern ecommerce platforms and mobile applications.

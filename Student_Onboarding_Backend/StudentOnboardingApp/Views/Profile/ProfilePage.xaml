@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:StudentOnboardingApp.ViewModels"
+             x:Class="StudentOnboardingApp.Views.Profile.ProfilePage"
+             x:DataType="vm:ProfileViewModel"
+             Title="My Profile"
+             BackgroundColor="{StaticResource LightBackground}">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="18" Padding="20,48,20,32" x:Name="ProfileContent">
+
+            <!-- Loading — properly spaced in its own card -->
+            <Border BackgroundColor="White" StrokeShape="RoundRectangle 14"
+                    StrokeThickness="0" Padding="16,12" HorizontalOptions="Center"
+                    IsVisible="{Binding IsBusy}">
+                <Border.Shadow>
+                    <Shadow Brush="#145B5BD6" Offset="0,2" Radius="8" Opacity="0.1" />
+                </Border.Shadow>
+                <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                    <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                       Color="{StaticResource Primary}"
+                                       HeightRequest="20" WidthRequest="20" />
+                    <Label Text="Loading profile..."
+                           FontSize="13" TextColor="{StaticResource TextMuted}"
+                           VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </Border>
+
+            <!-- Error Message -->
+            <Border BackgroundColor="{StaticResource ErrorLight}"
+                    StrokeShape="RoundRectangle 10" StrokeThickness="0" Padding="14,10"
+                    IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullConverter}}">
+                <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource ErrorText}"
+                       FontSize="13" HorizontalTextAlignment="Center" />
+            </Border>
+
+            <!-- Success Message -->
+            <Border BackgroundColor="{StaticResource SuccessLight}"
+                    StrokeShape="RoundRectangle 10" StrokeThickness="0" Padding="14,10"
+                    IsVisible="{Binding SuccessMessage, Converter={StaticResource IsNotNullConverter}}">
+                <Label Text="{Binding SuccessMessage}" TextColor="{StaticResource SuccessText}"
+                       FontSize="13" HorizontalTextAlignment="Center" />
+            </Border>
+
+            <!-- Profile Photo Section -->
+            <Border BackgroundColor="White"
+                    StrokeShape="RoundRectangle 20"
+                    Stroke="{StaticResource BorderColor}"
+                    Padding="24,24"
+                    StrokeThickness="1"
+                    x:Name="PhotoCard">
+                <Border.Shadow>
+                    <Shadow Brush="#145B5BD6" Offset="0,4" Radius="20" Opacity="0.12" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                    <!-- Avatar -->
+                    <Grid HeightRequest="110" WidthRequest="110" HorizontalOptions="Center">
+                        <!-- Photo image -->
+                        <Border StrokeShape="RoundRectangle 55"
+                                HeightRequest="110" WidthRequest="110"
+                                StrokeThickness="3" Stroke="{StaticResource Primary}"
+                                IsVisible="{Binding HasPhoto}" HorizontalOptions="Center">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding UploadPhotoCommand}" />
+                            </Border.GestureRecognizers>
+                            <Image Source="{Binding ProfileImage}" Aspect="AspectFill"
+                                   HeightRequest="110" WidthRequest="110" />
+                        </Border>
+                        <!-- Placeholder -->
+                        <Border BackgroundColor="{StaticResource Primary}"
+                                StrokeShape="RoundRectangle 55"
+                                HeightRequest="110" WidthRequest="110"
+                                HorizontalOptions="Center" StrokeThickness="0"
+                                IsVisible="{Binding HasPhoto, Converter={StaticResource InverseBoolConverter}}">
+                            <Border.Shadow>
+                                <Shadow Brush="#405B5BD6" Offset="0,4" Radius="14" Opacity="0.3" />
+                            </Border.Shadow>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding UploadPhotoCommand}" />
+                            </Border.GestureRecognizers>
+                            <Label Text="&#x1F4F7;" FontSize="36"
+                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <!-- Camera badge -->
+                        <Border BackgroundColor="White" StrokeShape="RoundRectangle 14"
+                                HeightRequest="28" WidthRequest="28" StrokeThickness="1"
+                                Stroke="{StaticResource BorderColor}"
+                                HorizontalOptions="End" VerticalOptions="End" Margin="0,0,2,2">
+                            <Label Text="&#x1F4F7;" FontSize="12"
+                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                    </Grid>
+
+                    <Label Text="Tap photo to change"
+                           FontSize="11" TextColor="{StaticResource TextMuted}"
+                           HorizontalOptions="Center" />
+
+                    <!-- Name display -->
+                    <Label HorizontalOptions="Center" FontSize="22" FontFamily="OpenSansSemibold"
+                           FontAttributes="Bold" TextColor="Black">
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="{Binding Profile.FirstName}" />
+                                <Span Text=" " />
+                                <Span Text="{Binding Profile.LastName}" />
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+                    <Label Text="{Binding Profile.Email}" FontSize="14"
+                           TextColor="{StaticResource TextMuted}" HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Edit/View Toggle -->
+            <Grid ColumnDefinitions="*, Auto" Margin="0,4,0,0">
+                <Label Text="PERSONAL INFORMATION" FontSize="11" FontFamily="OpenSansSemibold"
+                       TextColor="{StaticResource TextMuted}" CharacterSpacing="1" VerticalOptions="Center" />
+                <Button Grid.Column="1"
+                        Text="{Binding IsEditing, Converter={StaticResource EditToggleConverter}}"
+                        Command="{Binding ToggleEditCommand}"
+                        BackgroundColor="{StaticResource Surface3}"
+                        TextColor="{StaticResource Primary}"
+                        FontSize="12" FontFamily="OpenSansSemibold"
+                        Padding="14,6" CornerRadius="10"
+                        Shadow="{x:Null}" />
+            </Grid>
+
+            <!-- READ-ONLY View (when not editing) -->
+            <Border BackgroundColor="White" StrokeShape="RoundRectangle 18"
+                    Stroke="{StaticResource BorderColor}" Padding="20" StrokeThickness="1"
+                    IsVisible="{Binding IsEditing, Converter={StaticResource InverseBoolConverter}}"
+                    x:Name="InfoCard">
+                <Border.Shadow>
+                    <Shadow Brush="#0A5B5BD6" Offset="0,2" Radius="12" Opacity="0.08" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="0">
+                    <!-- Phone -->
+                    <Grid ColumnDefinitions="120, *" Padding="0,12">
+                        <Label Text="Phone" FontSize="13" FontFamily="OpenSansSemibold"
+                               TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                        <Label Grid.Column="1" Text="{Binding Profile.PhoneNumber, TargetNullValue='Not set'}"
+                               FontSize="14" TextColor="Black" />
+                    </Grid>
+                    <BoxView HeightRequest="1" Color="{StaticResource BorderLight}" />
+
+                    <!-- DOB -->
+                    <Grid ColumnDefinitions="120, *" Padding="0,12">
+                        <Label Text="Date of Birth" FontSize="13" FontFamily="OpenSansSemibold"
+                               TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                        <Label Grid.Column="1" Text="{Binding Profile.DateOfBirth, StringFormat='{0:MMM dd, yyyy}', TargetNullValue='Not set'}"
+                               FontSize="14" TextColor="Black" />
+                    </Grid>
+                    <BoxView HeightRequest="1" Color="{StaticResource BorderLight}" />
+
+                    <!-- Address -->
+                    <Grid ColumnDefinitions="120, *" Padding="0,12">
+                        <Label Text="Address" FontSize="13" FontFamily="OpenSansSemibold"
+                               TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                        <Label Grid.Column="1" Text="{Binding Profile.Address, TargetNullValue='Not set'}"
+                               FontSize="14" TextColor="Black" />
+                    </Grid>
+                    <BoxView HeightRequest="1" Color="{StaticResource BorderLight}" />
+
+                    <!-- Education -->
+                    <Grid ColumnDefinitions="120, *" Padding="0,12">
+                        <Label Text="Education" FontSize="13" FontFamily="OpenSansSemibold"
+                               TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                        <Label Grid.Column="1" Text="{Binding Profile.Education, TargetNullValue='Not set'}"
+                               FontSize="14" TextColor="Black" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- EDIT Form (when editing) -->
+            <Border BackgroundColor="White" StrokeShape="RoundRectangle 18"
+                    Stroke="{StaticResource Primary}" Padding="22" StrokeThickness="1.5"
+                    IsVisible="{Binding IsEditing}"
+                    x:Name="EditCard">
+                <Border.Shadow>
+                    <Shadow Brush="#205B5BD6" Offset="0,4" Radius="16" Opacity="0.15" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="16">
+
+                    <!-- Name Row -->
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="12">
+                        <VerticalStackLayout Spacing="5">
+                            <Label Text="FIRST NAME" FontSize="10" FontFamily="OpenSansSemibold"
+                                   TextColor="Black" CharacterSpacing="1" />
+                            <Border BackgroundColor="{StaticResource LightBackground}"
+                                    Stroke="{StaticResource BorderColor}" StrokeShape="RoundRectangle 12"
+                                    Padding="12,2" StrokeThickness="1.5">
+                                <Entry Text="{Binding FirstName}" ReturnType="Next"
+                                       TextColor="Black" PlaceholderColor="{StaticResource TextMuted}"
+                                       Placeholder="First name" />
+                            </Border>
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1" Spacing="5">
+                            <Label Text="LAST NAME" FontSize="10" FontFamily="OpenSansSemibold"
+                                   TextColor="Black" CharacterSpacing="1" />
+                            <Border BackgroundColor="{StaticResource LightBackground}"
+                                    Stroke="{StaticResource BorderColor}" StrokeShape="RoundRectangle 12"
+                                    Padding="12,2" StrokeThickness="1.5">
+                                <Entry Text="{Binding LastName}" ReturnType="Next"
+                                       TextColor="Black" PlaceholderColor="{StaticResource TextMuted}"
+                                       Placeholder="Last name" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <!-- Phone -->
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="PHONE NUMBER" FontSize="10" FontFamily="OpenSansSemibold"
+                               TextColor="Black" CharacterSpacing="1" />
+                        <Border BackgroundColor="{StaticResource LightBackground}"
+                                Stroke="{StaticResource BorderColor}" StrokeShape="RoundRectangle 12"
+                                Padding="12,2" StrokeThickness="1.5">
+                            <Entry Text="{Binding PhoneNumber}" Keyboard="Telephone" ReturnType="Next"
+                                   TextColor="Black" PlaceholderColor="{StaticResource TextMuted}"
+                                   Placeholder="Phone number" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- DOB -->
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="DATE OF BIRTH" FontSize="10" FontFamily="OpenSansSemibold"
+                               TextColor="Black" CharacterSpacing="1" />
+                        <Border BackgroundColor="{StaticResource LightBackground}"
+                                Stroke="{StaticResource BorderColor}" StrokeShape="RoundRectangle 12"
+                                Padding="12,6" StrokeThickness="1.5">
+                            <DatePicker Date="{Binding DateOfBirth}" TextColor="Black"
+                                        x:Name="DobPicker" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Address -->
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="ADDRESS" FontSize="10" FontFamily="OpenSansSemibold"
+                               TextColor="Black" CharacterSpacing="1" />
+                        <Border BackgroundColor="{StaticResource LightBackground}"
+                                Stroke="{StaticResource BorderColor}" StrokeShape="RoundRectangle 12"
+                                Padding="12,2" StrokeThickness="1.5">
+                            <Editor Text="{Binding Address}" HeightRequest="80"
+                                    TextColor="Black" PlaceholderColor="{StaticResource TextMuted}"
+                                    Placeholder="Enter your address" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Education -->
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="EDUCATION" FontSize="10" FontFamily="OpenSansSemibold"
+                               TextColor="Black" CharacterSpacing="1" />
+                        <Border BackgroundColor="{StaticResource LightBackground}"
+                                Stroke="{StaticResource BorderColor}" StrokeShape="RoundRectangle 12"
+                                Padding="12,2" StrokeThickness="1.5">
+                            <Entry Text="{Binding Education}" ReturnType="Done"
+                                   TextColor="Black" PlaceholderColor="{StaticResource TextMuted}"
+                                   Placeholder="e.g. B.Tech, MBA" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Save Button -->
+                    <Button Text="Save Changes"
+                            Command="{Binding SaveProfileCommand}"
+                            BackgroundColor="{StaticResource Primary}" TextColor="White"
+                            FontAttributes="Bold" FontFamily="OpenSansSemibold"
+                            CornerRadius="12" HeightRequest="50" FontSize="15"
+                            IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}" />
+
+                    <!-- Cancel -->
+                    <Button Text="Cancel"
+                            Command="{Binding ToggleEditCommand}"
+                            BackgroundColor="{StaticResource Surface3}"
+                            TextColor="{StaticResource TextSecondary}"
+                            FontFamily="OpenSansSemibold"
+                            CornerRadius="12" HeightRequest="44" FontSize="14"
+                            Shadow="{x:Null}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Action Buttons (always visible) -->
+            <Button Text="Change Password"
+                    Command="{Binding GoToChangePasswordCommand}"
+                    BackgroundColor="White"
+                    TextColor="{StaticResource Primary}"
+                    FontFamily="OpenSansSemibold"
+                    CornerRadius="12" HeightRequest="50" FontSize="15"
+                    BorderWidth="1.5" BorderColor="{StaticResource BorderColor}">
+                <Button.Shadow>
+                    <Shadow Brush="#0A5B5BD6" Offset="0,2" Radius="8" Opacity="0.06" />
+                </Button.Shadow>
+            </Button>
+
+            <Button Text="Logout"
+                    Command="{Binding LogoutCommand}"
+                    BackgroundColor="{StaticResource ErrorLight}"
+                    TextColor="{StaticResource ErrorText}"
+                    FontFamily="OpenSansSemibold"
+                    CornerRadius="12" HeightRequest="50" FontSize="15"
+                    Margin="0,4,0,20">
+                <Button.Shadow>
+                    <Shadow Brush="#0AEF4444" Offset="0,2" Radius="8" Opacity="0.06" />
+                </Button.Shadow>
+            </Button>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:StudentOnboardingApp.ViewModels.Onboarding"
+             x:Class="StudentOnboardingApp.Views.Onboarding.ApprovalWaitingPage"
+             x:DataType="vm:ApprovalWaitingViewModel"
+             Shell.NavBarIsVisible="False">
+
+    <ContentPage.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="{StaticResource GradientStart}" Offset="0.0" />
+            <GradientStop Color="{StaticResource GradientMid}" Offset="0.4" />
+            <GradientStop Color="{StaticResource GradientEnd}" Offset="1.0" />
+        </LinearGradientBrush>
+    </ContentPage.Background>
+
+    <VerticalStackLayout Spacing="18" Padding="30" VerticalOptions="Center">
+
+        <!-- Status Icon -->
+        <Border BackgroundColor="#FFFFFF88"
+                StrokeThickness="0" StrokeShape="RoundRectangle 40"
+                HeightRequest="90" WidthRequest="90"
+                HorizontalOptions="Center">
+            <Label Text="&#x23F3;" FontSize="40"
+                   HorizontalOptions="Center" VerticalOptions="Center" />
+        </Border>
+
+        <Label Text="Application Submitted"
+               FontSize="26" FontFamily="OpenSansSemibold" FontAttributes="Bold"
+               TextColor="{StaticResource DarkText}" HorizontalOptions="Center" />
+
+        <Label Text="{Binding StatusMessage}"
+               FontSize="15" TextColor="{StaticResource TextSecondary}"
+               HorizontalOptions="Center" HorizontalTextAlignment="Center"
+               LineBreakMode="WordWrap" LineHeight="1.5" />
+
+        <!-- Card -->
+        <Border BackgroundColor="#E8FFFFFF"
+                StrokeShape="RoundRectangle 20" Stroke="#60FFFFFF"
+                StrokeThickness="1" Padding="24,20">
+            <Border.Shadow>
+                <Shadow Brush="#205B5BD6" Offset="0,8" Radius="32" Opacity="0.2" />
+            </Border.Shadow>
+            <VerticalStackLayout Spacing="14">
+                <ActivityIndicator IsRunning="{Binding IsBlocked, Converter={StaticResource InverseBoolConverter}}"
+                                   IsVisible="{Binding IsBlocked, Converter={StaticResource InverseBoolConverter}}"
+                                   Color="{StaticResource Primary}" HorizontalOptions="Center" />
+
+                <Label Text="Your application is being reviewed. You'll be notified once approved."
+                       FontSize="14" TextColor="{StaticResource TextSecondary}"
+                       HorizontalTextAlignment="Center" LineHeight="1.4"
+                       IsVisible="{Binding IsBlocked, Converter={StaticResource InverseBoolConverter}}" />
+
+                <!-- Blocked state -->
+                <Border BackgroundColor="{StaticResource ErrorLight}"
+                        StrokeShape="RoundRectangle 12" Padding="18,14"
+                        IsVisible="{Binding IsBlocked}" StrokeThickness="0">
+                    <Label Text="Please contact the administrator for more information."
+                           TextColor="{StaticResource ErrorText}" FontSize="14"
+                           HorizontalTextAlignment="Center" LineHeight="1.4" />
+                </Border>
+            </VerticalStackLayout>
+        </Border>
+
+    </VerticalStackLayout>
+</ContentPage>
