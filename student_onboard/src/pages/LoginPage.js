@@ -101,7 +101,7 @@ export default function LoginPage() {
               🔗 Connected to C# ASP.NET Core API
             </p>
             <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", fontFamily: "var(--font-body)", marginTop: 4 }}>
-              {process.env.REACT_APP_API_URL || "https://student-onboarding-api.onrender.com/api"}
+              {process.env.REACT_APP_API_URL || "http://localhost:5192"}
             </p>
           </div>
         </div>

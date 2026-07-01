@@ -3,7 +3,7 @@
 // Integrated with C# ASP.NET Core backend
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BASE_URL = process.env.REACT_APP_API_URL || "https://student-onboarding-api.onrender.com/api";
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5192";
 
 // ── Token helpers ─────────────────────────────────────────────────────────
 export const tokenHelper = {
