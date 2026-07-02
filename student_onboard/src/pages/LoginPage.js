@@ -101,7 +101,7 @@ export default function LoginPage() {
               🔗 Connected to C# ASP.NET Core API
             </p>
             <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", fontFamily: "var(--font-body)", marginTop: 4 }}>
-              {process.env.REACT_APP_API_URL || "http://localhost:5192"}
+              {process.env.REACT_APP_API_URL || "http://localhost:10000"}
             </p>
           </div>
         </div>

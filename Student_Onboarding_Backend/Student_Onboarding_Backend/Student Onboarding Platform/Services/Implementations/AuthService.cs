@@ -151,12 +151,12 @@ public class AuthService : IAuthService
             return ApiResponse<AuthResponse>.Fail("Email not verified. A new verification OTP has been sent to your email.");
         }
 
-        // Check approval status (Phase 2)
-        if (user.ApprovalStatus == nameof(ApprovalStatus.Pending))
-        {
-            await _loginAttemptService.LogAttemptAsync(email, ipAddress, userAgent, false, nameof(FailureReason.PendingApproval));
-            return ApiResponse<AuthResponse>.Fail("Your account is pending admin approval. You will be notified once approved.");
-        }
+        //// Check approval status (Phase 2)
+        //if (user.ApprovalStatus == nameof(ApprovalStatus.Pending))
+        //{
+        //    await _loginAttemptService.LogAttemptAsync(email, ipAddress, userAgent, false, nameof(FailureReason.PendingApproval));
+        //    return ApiResponse<AuthResponse>.Fail("Your account is pending admin approval. You will be notified once approved.");
+        //}
 
         if (user.ApprovalStatus == nameof(ApprovalStatus.Denied))
         {
