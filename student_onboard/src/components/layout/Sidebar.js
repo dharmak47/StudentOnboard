@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { Avatar } from "../common";
 import { FiBell } from "react-icons/fi";
 
-const NAV_ITEMS = [
+const ADMIN_NAV = [
   { id: "dashboard",      icon: "▦",  label: "Dashboard"      },
   { id: "students",       icon: "◎",  label: "Students"       },
   { id: "registrations",  icon: "▤",  label: "Registrations"  },
@@ -14,10 +14,18 @@ const NAV_ITEMS = [
   { id: "settings",       icon: "◌",  label: "Settings"       },
 ];
 
+const STUDENT_NAV = [
+  { id: "dashboard",      icon: "▦",  label: "Dashboard"      },
+  { id: "courses",        icon: "◈",  label: "Courses"        },
+  { id: "notifications",  icon: <FiBell size={16} />, label: "Notifications"  },
+  { id: "profile",        icon: "◎",  label: "My Profile"     },
+];
+
 export default function Sidebar({ active, onChange }) {
-  const { admin, logout } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
-  const profilePic = localStorage.getItem("edu_admin_pic") || "";
+  const profilePic = localStorage.getItem("edu_user_pic") || "";
+  const NAV_ITEMS = isAdmin ? ADMIN_NAV : STUDENT_NAV;
 
   return (
     <aside style={{
@@ -78,18 +86,18 @@ export default function Sidebar({ active, onChange }) {
         })}
       </nav>
 
-      {/* Admin profile */}
+      {/* User profile */}
       <div style={{ padding: "12px 10px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-        {!collapsed && admin && (
+        {!collapsed && user && (
           <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, background: "rgba(255,255,255,0.05)", marginBottom: 8 }}>
             {profilePic ? (
               <img src={profilePic} alt="Profile" style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
             ) : (
-              <Avatar initials={admin.avatar || "AD"} size={34} />
+              <Avatar initials={user.avatar || "US"} size={34} />
             )}
             <div style={{ overflow: "hidden", flex: 1 }}>
-              <div style={{ color: "rgba(255,255,255,0.9)", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "0.8rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{admin.name}</div>
-              <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.68rem" }}>Super Admin</div>
+              <div style={{ color: "rgba(255,255,255,0.9)", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "0.8rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user.name}</div>
+              <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.68rem" }}>{isAdmin ? "Admin" : "Student"}</div>
             </div>
           </div>
         )}

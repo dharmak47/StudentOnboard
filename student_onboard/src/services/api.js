@@ -19,8 +19,8 @@ export const tokenHelper = {
     localStorage.removeItem("edu_access_token");
     localStorage.removeItem("edu_refresh_token");
     localStorage.removeItem("edu_token_expires");
-    localStorage.removeItem("edu_admin");
-    localStorage.removeItem("edu_admin_pic");
+    localStorage.removeItem("edu_user");
+    localStorage.removeItem("edu_user_pic");
   },
 };
 
@@ -188,7 +188,7 @@ async function request(method, path, body, isPublic = false) {
   return data;
 }
 
-const get   = (path)              => request("GET",    path);
+const get   = (path, isPublic)    => request("GET",    path, null, isPublic);
 const post  = (path, body, pub)   => request("POST",   path, body, pub);
 const put   = (path, body)        => request("PUT",    path, body);
 const patch = (path, body)        => request("PATCH",  path, body);
@@ -219,16 +219,31 @@ async function uploadFile(path, file, fieldName = "photo") {
 }
 
 // ── Auth API ──────────────────────────────────────────────────────────────
-// C# endpoint: POST /api/Auth/login
-// Request:  { email, password, deviceType, deviceName }
+// C# endpoints: POST /api/Auth/signup, login, verify-otp, etc.
 // Response: { accessToken, refreshToken, expiresAt, user: { id, firstName, lastName, email, role } }
 export const authApi = {
+  signup: (firstName, lastName, email, phoneNumber, password, confirmPassword) =>
+    post("/api/Auth/signup", {
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      password,
+      confirmPassword,
+    }, true), // true = public route, no token needed
+
+  verifyOtp: (email, otpCode, otpType = "EmailVerification") =>
+    post("/api/Auth/verify-otp", { email, otpCode, otpType }, true),
+
+  resendOtp: (email, otpType = "EmailVerification") =>
+    post("/api/Auth/resend-otp", { email, otpType }, true),
+
   login: (email, password) =>
     post("/api/Auth/login", {
       email,
       password,
       deviceType: "Web",
-      deviceName: "Admin Panel",
+      deviceName: "Web Portal",
     }, true), // true = public route, no token needed
 
   logout: (refreshToken) =>
@@ -292,6 +307,12 @@ export const studentsApi = {
     return { data: mapStudent(res.data) };
   },
   stats: () => get("/api/Admin/students/stats"),
+  createUser: async (payload) => {
+    return post("/api/Admin/users", payload);
+  },
+  changePassword: async (id, newPassword) => {
+    return put(`/api/Admin/users/${id}/password`, { newPassword });
+  },
 };
 
 // ── Courses API ───────────────────────────────────────────────────────────
@@ -394,6 +415,34 @@ export const faqsApi = {
 // ── Admin Profile API ────────────────────────────────────────────────────
 export const adminProfileApi = {
   uploadPhoto: (file) => uploadFile("/api/Admin/profile/photo", file, "photo"),
+};
+
+// ── Student API ───────────────────────────────────────────────────────────
+export const studentApi = {
+  getProfile:           ()           => get("/api/Student/profile"),
+  updateProfile:        (payload)    => put("/api/Student/profile", payload),
+  uploadPhoto:          (file)       => uploadFile("/api/Student/profile/photo", file, "photo"),
+  getDashboard:         ()           => get("/api/Student/dashboard"),
+  getRegisteredCourses: ()           => get("/api/Student/courses"),
+  registerForCourse:    (courseId)   => post("/api/Student/courses/register", { courseId }),
+  getNotifications:     ()           => get("/api/Student/notifications"),
+  markNotificationRead: (id)         => put(`/api/Student/notifications/${id}/read`),
+  submitReview:         (courseId, rating, remarks) =>
+                                        post(`/api/Student/courses/${courseId}/review`, { rating, remarks }),
+  getCourseReviews:     (courseId)   => get(`/api/Student/courses/${courseId}/reviews`, true),
+  getFaqs:              ()           => get("/api/Student/faqs", true),
+};
+
+// ── Public Courses API ────────────────────────────────────────────────────
+export const publicCoursesApi = {
+  getAll:  async () => {
+    const res = await get("/api/Course", true);
+    return { ...res, data: (res.data || []).map(mapCourse) };
+  },
+  getById: async (id) => {
+    const res = await get(`/api/Course/${id}`, true);
+    return { ...res, data: mapCourse(res.data) };
+  },
 };
 
 //── Analytics API ─────────────────────────────────────────────────────────

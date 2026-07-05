@@ -1,7 +1,7 @@
 // src/components/layout/Topbar.js
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { notificationsApi } from "../../services/api";
+import { notificationsApi, studentApi } from "../../services/api";
 import { FiBell, FiBellOff } from "react-icons/fi";
 
 const PAGE_META = {
@@ -12,6 +12,7 @@ const PAGE_META = {
   notifications: { title: "Notifications",      sub: "View and manage all your notifications." },
   faqs:          { title: "FAQs Management",    sub: "Create and manage frequently asked questions." },
   settings:      { title: "Settings",           sub: "Manage your account and preferences." },
+  profile:       { title: "My Profile",         sub: "View and edit your personal information." },
 };
 
 const NOTIF_ICONS = {
@@ -42,7 +43,7 @@ function timeAgo(dateStr) {
 }
 
 export default function Topbar({ page }) {
-  const { admin } = useAuth();
+  const { user, isAdmin } = useAuth();
   const meta = PAGE_META[page] || PAGE_META.dashboard;
   const now = new Date().toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 
@@ -54,17 +55,22 @@ export default function Topbar({ page }) {
   const [expandedNotif, setExpandedNotif] = useState(null);
   const panelRef = useRef(null);
   const profileRef = useRef(null);
-  const profilePic = localStorage.getItem("edu_admin_pic") || "";
+  const profilePic = localStorage.getItem("edu_user_pic") || "";
 
-  // Fetch unread count on mount and every 30s
+  // Fetch unread count on mount and every 15s
   const fetchUnread = useCallback(async () => {
     try {
-      const res = await notificationsApi.unreadCount();
-      setUnreadCount(res.data?.count ?? res.data?.unreadCount ?? 0);
+      if (isAdmin) {
+        const res = await notificationsApi.unreadCount();
+        setUnreadCount(res.data?.count ?? res.data?.unreadCount ?? 0);
+      } else {
+        const res = await studentApi.getNotifications();
+        setUnreadCount((res.data || []).filter(n => !n.isRead).length);
+      }
     } catch {
       // silently fail
     }
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => {
     fetchUnread();
@@ -89,7 +95,12 @@ export default function Topbar({ page }) {
     if (opening) {
       setLoading(true);
       try {
-        const res = await notificationsApi.getAll();
+        let res;
+        if (isAdmin) {
+          res = await notificationsApi.getAll();
+        } else {
+          res = await studentApi.getNotifications();
+        }
         setNotifications(res.data || []);
       } catch {
         setNotifications([]);
@@ -106,7 +117,11 @@ export default function Topbar({ page }) {
 
   const markRead = async (id) => {
     try {
-      await notificationsApi.markAsRead(id);
+      if (isAdmin) {
+        await notificationsApi.markAsRead(id);
+      } else {
+        await studentApi.markNotificationRead(id);
+      }
       setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, isRead: true } : n));
       setUnreadCount((c) => Math.max(0, c - 1));
     } catch {
@@ -216,8 +231,8 @@ export default function Topbar({ page }) {
           )}
         </div>
 
-        {/* Admin profile chip + dropdown */}
-        {admin && (
+        {/* User profile chip + dropdown */}
+        {user && (
           <div ref={profileRef} style={{ position: "relative" }}>
             <div
               onClick={toggleProfile}
@@ -233,10 +248,10 @@ export default function Topbar({ page }) {
                 <img src={profilePic} alt="Profile" style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} />
               ) : (
                 <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, #5B5BD6, #8B8FD4)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "0.7rem" }}>
-                  {admin.avatar || "AD"}
+                  {user.avatar || "US"}
                 </div>
               )}
-              <span style={{ fontFamily: "var(--font-display)", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-primary)" }}>{admin.name}</span>
+              <span style={{ fontFamily: "var(--font-display)", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-primary)" }}>{user.name}</span>
               <span style={{ fontSize: 10, color: "var(--text-muted)", marginLeft: 2 }}>▼</span>
             </div>
 
@@ -254,18 +269,18 @@ export default function Topbar({ page }) {
                     <img src={profilePic} alt="Profile" style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", margin: "0 auto 10px", display: "block", border: "3px solid rgba(255,255,255,0.3)" }} />
                   ) : (
                     <div style={{ width: 52, height: 52, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.1rem", margin: "0 auto 10px" }}>
-                      {admin.avatar || "AD"}
+                      {user.avatar || "US"}
                     </div>
                   )}
-                  <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "0.95rem", color: "#fff" }}>{admin.name}</div>
-                  <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.7)", marginTop: 2 }}>{admin.email}</div>
+                  <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "0.95rem", color: "#fff" }}>{user.name}</div>
+                  <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.7)", marginTop: 2 }}>{user.email}</div>
                 </div>
 
                 {/* Profile details */}
                 <div style={{ padding: "16px 20px" }}>
                   {[
-                    ["Role", admin.role || "Admin"],
-                    ["User ID", admin.id ? `${admin.id.substring(0, 8)}...` : "—"],
+                    ["Role", user.role || "User"],
+                    ["User ID", user.id ? `${user.id.substring(0, 8)}...` : "—"],
                   ].map(([label, value]) => (
                     <div key={label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-light)" }}>
                       <span style={{ fontFamily: "var(--font-display)", fontSize: "0.75rem", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</span>
