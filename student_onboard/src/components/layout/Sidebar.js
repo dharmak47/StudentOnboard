@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { Avatar } from "../common";
-import { FiBell } from "react-icons/fi";
+import { FiBell, FiMail } from "react-icons/fi";
 
 const NAV_ITEMS = [
   { id: "dashboard",      icon: "▦",  label: "Dashboard"      },
@@ -11,7 +11,7 @@ const NAV_ITEMS = [
   { id: "courses",        icon: "◈",  label: "Courses"        },
   { id: "notifications",  icon: <FiBell size={16} />, label: "Notifications"  },
   { id: "faqs",           icon: "?",  label: "FAQs"           },
-  { id: "settings",       icon: "◌",  label: "Settings"       },
+  { id: "enquiries",      icon: <FiMail size={16} />, label: "Enquiries"      },
 ];
 
 export default function Sidebar({ active, onChange }) {

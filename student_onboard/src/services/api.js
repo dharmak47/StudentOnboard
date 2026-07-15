@@ -413,3 +413,13 @@ export const analyticsApi = {
     };
   },
 };
+
+// ── Enquiries API ────────────────────────────────────────────────────────
+export const enquiriesApi = {
+  submit: (payload) => post("/Enquiries", payload, true), // Public
+  getAll: async () => {
+    const res = await get("/Enquiries");
+    return { data: res.data || [] };
+  },
+  resolve: (id) => patch(`/Enquiries/${id}/resolve`),
+};
