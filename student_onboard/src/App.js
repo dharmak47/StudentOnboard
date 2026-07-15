@@ -9,9 +9,10 @@ import DashboardPage from "./pages/DashboardPage";
 import StudentsPage       from "./pages/StudentsPage";
 import RegistrationsPage  from "./pages/RegistrationsPage";
 import CoursesPage        from "./pages/CoursesPage";
-import SettingsPage       from "./pages/SettingsPage";
+import EnquiriesPage from "./pages/EnquiriesPage";
 import NotificationsPage  from "./pages/NotificationsPage";
 import FaqsPage           from "./pages/FaqsPage";
+import SettingsPage       from "./pages/SettingsPage";
 
 import "./styles/globals.css";
 
@@ -20,6 +21,7 @@ const PAGES = {
   students:       StudentsPage,
   registrations:  RegistrationsPage,
   courses:        CoursesPage,
+  enquiries:     EnquiriesPage,
   notifications:  NotificationsPage,
   faqs:           FaqsPage,
   settings:       SettingsPage,
