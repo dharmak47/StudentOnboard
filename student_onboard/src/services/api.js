@@ -362,6 +362,7 @@ export const registrationsApi = {
     const res = await put(`/Admin/course-registrations/${id}/payment`, payload);
     return res;
   },
+  complete: (id) => put(`/Admin/course-registrations/${id}/complete`),
 };
 
 // ── Notifications API ─────────────────────────────────────────────────────
@@ -422,4 +423,40 @@ export const enquiriesApi = {
     return { data: res.data || [] };
   },
   resolve: (id) => patch(`/Enquiries/${id}/resolve`),
+};
+
+// ── Certificates API ─────────────────────────────────────────────────────
+export const certificatesApi = {
+  download: async (registrationId) => {
+    const token = tokenHelper.getAccess();
+    const res = await fetch(`${BASE_URL}/Admin/certificates/${registrationId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.message || "Failed to download certificate.");
+    }
+    const blob = await res.blob();
+    
+    // Trigger browser download
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    
+    // Check if the server provided a filename
+    const disposition = res.headers.get("content-disposition");
+    let filename = "Certificate.pdf";
+    if (disposition && disposition.indexOf("filename=") !== -1) {
+        const matches = /filename="([^"]+)"/.exec(disposition);
+        if (matches != null && matches[1]) {
+            filename = matches[1];
+        }
+    }
+    
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  },
 };

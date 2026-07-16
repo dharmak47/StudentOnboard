@@ -103,4 +103,19 @@ public class CourseRegistrationRepository : ICourseRegistrationRepository
                 UpdatedAt = DateTime.UtcNow
             });
     }
+
+    public async Task UpdateCompletionAsync(Guid id, bool isCompleted, DateTime? completedAt)
+    {
+        using var conn = _db.CreateConnection();
+        await conn.ExecuteAsync(@"
+            UPDATE CourseRegistrations SET IsCompleted = @IsCompleted, CompletedAt = @CompletedAt, UpdatedAt = @UpdatedAt
+            WHERE Id = @Id",
+            new
+            {
+                Id = id,
+                IsCompleted = isCompleted,
+                CompletedAt = completedAt,
+                UpdatedAt = DateTime.UtcNow
+            });
+    }
 }
