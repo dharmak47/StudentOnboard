@@ -1,15 +1,34 @@
 // src/pages/LoginPage.js
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { enquiriesApi } from "../services/api";
 
 export default function LoginPage({ onSignup }) {
   const { login, loading, error } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
   const [show, setShow] = useState(false);
+  
+  // Enquiry state
+  const [showEnquiry, setShowEnquiry] = useState(false);
+  const [enquiryForm, setEnquiryForm] = useState({ name: "", email: "", phoneNumber: "", message: "" });
+  const [enquiryStatus, setEnquiryStatus] = useState({ loading: false, success: false, error: "" });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     await login({ email: form.email, password: form.password });
+  };
+
+  const handleEnquirySubmit = async (e) => {
+    e.preventDefault();
+    setEnquiryStatus({ loading: true, success: false, error: "" });
+    try {
+      await enquiriesApi.submit(enquiryForm);
+      setEnquiryStatus({ loading: false, success: true, error: "" });
+      setEnquiryForm({ name: "", email: "", phoneNumber: "", message: "" });
+      setTimeout(() => setShowEnquiry(false), 2000);
+    } catch (err) {
+      setEnquiryStatus({ loading: false, success: false, error: err.message || "Failed to submit enquiry." });
+    }
   };
 
   return (
@@ -99,6 +118,18 @@ export default function LoginPage({ onSignup }) {
             </span>
           </div>
 
+          {/* Enquire Now Link */}
+          <div style={{ marginTop: 12, textAlign: "center" }}>
+            <p style={{ fontSize: "0.9rem", color: "#5A5A82" }}>
+              Prospective Student?{" "}
+              <button
+                onClick={() => setShowEnquiry(true)}
+                style={{ background: "none", border: "none", color: "var(--primary)", fontWeight: "bold", cursor: "pointer", fontSize: "0.9rem", textDecoration: "underline" }}>
+                Enquire Now
+              </button>
+            </p>
+          </div>
+
           {/* Backend status indicator */}
           <div style={{ marginTop: 28, padding: 16, background: "rgba(91,91,214,0.08)", borderRadius: 10, border: "1px solid rgba(91,91,214,0.15)" }}>
             <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: 6, fontFamily: "var(--font-display)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
@@ -113,6 +144,72 @@ export default function LoginPage({ onSignup }) {
           </div>
         </div>
       </div>
+
+      {/* Enquiry Modal */}
+      {showEnquiry && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999
+        }}>
+          <div style={{
+            background: "#fff", borderRadius: 16, padding: 32, width: "100%", maxWidth: 450,
+            boxShadow: "0 20px 40px rgba(0,0,0,0.2)", position: "relative"
+          }}>
+            <button onClick={() => setShowEnquiry(false)} style={{
+              position: "absolute", top: 16, right: 16, background: "none", border: "none", fontSize: 24, cursor: "pointer", color: "#9898B8"
+            }}>×</button>
+            
+            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", fontWeight: 800, color: "#1A1A3E", marginBottom: 8 }}>Enquire Now</h2>
+            <p style={{ color: "#5A5A82", fontSize: "0.9rem", marginBottom: 24 }}>Have questions? Fill out the form below and we'll get back to you.</p>
+
+            {enquiryStatus.success ? (
+              <div style={{ padding: 20, background: "#D1FAE5", color: "#065F46", borderRadius: 8, textAlign: "center" }}>
+                <span style={{ fontSize: 24, display: "block", marginBottom: 8 }}>✅</span>
+                Your enquiry has been submitted successfully!
+              </div>
+            ) : (
+              <form onSubmit={handleEnquirySubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                {enquiryStatus.error && (
+                  <div style={{ background: "#FEE2E2", color: "#B91C1C", padding: 12, borderRadius: 8, fontSize: "0.85rem" }}>
+                    {enquiryStatus.error}
+                  </div>
+                )}
+                
+                <div>
+                  <label className="label">Full Name</label>
+                  <input className="input-field" type="text" placeholder="John Doe" required
+                    value={enquiryForm.name} onChange={(e) => setEnquiryForm({ ...enquiryForm, name: e.target.value })} />
+                </div>
+                
+                <div>
+                  <label className="label">Email Address</label>
+                  <input className="input-field" type="email" placeholder="john@example.com" required
+                    value={enquiryForm.email} onChange={(e) => setEnquiryForm({ ...enquiryForm, email: e.target.value })} />
+                </div>
+                
+                <div>
+                  <label className="label">Phone Number</label>
+                  <input className="input-field" type="tel" placeholder="+1 234 567 8900"
+                    value={enquiryForm.phoneNumber} onChange={(e) => setEnquiryForm({ ...enquiryForm, phoneNumber: e.target.value })} />
+                </div>
+                
+                <div>
+                  <label className="label">Message</label>
+                  <textarea className="input-field" placeholder="How can we help you?" required rows={4}
+                    style={{ resize: "vertical", padding: "12px 16px" }}
+                    value={enquiryForm.message} onChange={(e) => setEnquiryForm({ ...enquiryForm, message: e.target.value })} />
+                </div>
+                
+                <button type="submit" className="btn-primary" disabled={enquiryStatus.loading}
+                  style={{ width: "100%", justifyContent: "center", padding: "12px", marginTop: 8 }}>
+                  {enquiryStatus.loading ? "Submitting..." : "Submit Enquiry"}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
