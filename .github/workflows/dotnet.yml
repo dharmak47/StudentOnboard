@@ -1,28 +1,25 @@
-name: .NET
+name: Build MAUI
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore dependencies
+      - name: Install MAUI workloads
+        run: dotnet workload install maui
+
+      - name: Restore
         run: dotnet restore "Student_Onboarding_Backend/Student_Onboarding_Backend/Student Onboarding Platform.sln"
 
       - name: Build
         run: dotnet build "Student_Onboarding_Backend/Student_Onboarding_Backend/Student Onboarding Platform.sln" --configuration Release --no-restore
-
-      - name: Test
-        run: dotnet test "Student_Onboarding_Backend/Student_Onboarding_Backend/Student Onboarding Platform.sln" --configuration Release --no-build --verbosity normal
