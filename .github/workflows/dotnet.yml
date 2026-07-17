@@ -35,4 +35,4 @@ jobs:
 
       - name: Run Tests
         run: |
-          dotnet test "Student_Onboarding_Backend/Student_Onboarding_Backend/StudentOnboarding.Tests/StudentOnboarding.Tests.csproj" --configuration Release --no-build --verbosity normal
+          dotnet test "Student_Onboarding_Backend/Student_Onboarding_Backend/StudentOnboarding.Tests/StudentOnboarding.Tests.csproj" --configuration Release --verbosity normal
