@@ -13,4 +13,6 @@ public class CourseRegistrationListResponse
     public DateTime? PaymentDate { get; set; }
     public string? Notes { get; set; }
     public DateTime RegisteredAt { get; set; }
+    public bool IsCompleted { get; set; }
+    public DateTime? CompletedAt { get; set; }
 }
