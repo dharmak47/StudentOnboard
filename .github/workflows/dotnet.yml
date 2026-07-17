@@ -21,8 +21,8 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Restore dependencies
-      run: dotnet StudentOnboard/Student_Onboarding_Backend/Student_Onboarding_Backend/Student Onboarding Platform.sln restore
+      run: dotnet  restore
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build  StudentOnboard/Student_Onboarding_Backend/Student_Onboarding_Backend/Student Onboarding Platform.sln --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
