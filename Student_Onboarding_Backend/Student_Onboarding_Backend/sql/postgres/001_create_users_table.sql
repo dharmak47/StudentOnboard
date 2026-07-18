@@ -21,3 +21,11 @@ CREATE TABLE IF NOT EXISTS Users (
     UpdatedAt TIMESTAMP,
     LastLoginAt TIMESTAMP
 );
+
+
+ALTER TABLE [Users] 
+ALTER COLUMN [ApprovalStatus] VARCHAR(20) NULL;
+
+-- Add default constraint for new users
+ALTER TABLE [Users] 
+ADD CONSTRAINT DF_Users_ApprovalStatus DEFAULT ('Pending') FOR [ApprovalStatus];
