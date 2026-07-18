@@ -8,9 +8,7 @@ namespace Student_Onboarding_Platform.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[AllowAnonymous]
-
-//[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin")]
 public class AdminController : ControllerBase
 {
     private readonly IAdminService _adminService;
@@ -254,6 +252,20 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> DeleteFaq(Guid id)
     {
         var result = await _faqService.DeleteFaqAsync(id);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpPost("users")]
+    public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
+    {
+        var result = await _adminService.CreateUserAsync(request);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpPut("users/{id}/password")]
+    public async Task<IActionResult> ChangeUserPassword(Guid id, [FromBody] AdminChangePasswordRequest request)
+    {
+        var result = await _adminService.ChangeUserPasswordAsync(id, request);
         return result.Success ? Ok(result) : BadRequest(result);
     }
 }

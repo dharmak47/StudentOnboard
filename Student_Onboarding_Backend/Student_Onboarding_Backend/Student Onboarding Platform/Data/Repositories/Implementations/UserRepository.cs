@@ -89,8 +89,7 @@ public class UserRepository : IUserRepository
     {
         using var conn = _db.CreateConnection();
         await conn.ExecuteAsync(@"
-            UPDATE Users SET ApprovalStatus = @Status, ApprovedBy = @ApprovedBy,
-                ApprovedAt = @ApprovedAt, DenialReason = @DenialReason, UpdatedAt = @UpdatedAt
+            UPDATE Users SET ApprovalStatus = @Status, UpdatedAt = @UpdatedAt
             WHERE Id = @Id",
             new
             {

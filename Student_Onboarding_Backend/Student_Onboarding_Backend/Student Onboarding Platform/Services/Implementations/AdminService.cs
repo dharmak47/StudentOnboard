@@ -3,6 +3,7 @@ using Student_Onboarding_Platform.Data.Repositories.Interfaces;
 using Student_Onboarding_Platform.Models.DTOs.Admin;
 using Student_Onboarding_Platform.Models.DTOs.Common;
 using Student_Onboarding_Platform.Models.DTOs.Student;
+using Student_Onboarding_Platform.Models.Entities;
 using Student_Onboarding_Platform.Models.Enums;
 using Student_Onboarding_Platform.Services.Interfaces;
 
@@ -17,6 +18,7 @@ public class AdminService : IAdminService
     private readonly INotificationService _notificationService;
     private readonly ISessionService _sessionService;
     private readonly IFileStorageService _fileStorage;
+    private readonly IPasswordHasher _passwordHasher;
     private readonly ILogger<AdminService> _logger;
 
     public AdminService(
@@ -27,6 +29,7 @@ public class AdminService : IAdminService
         INotificationService notificationService,
         ISessionService sessionService,
         IFileStorageService fileStorage,
+        IPasswordHasher passwordHasher,
         ILogger<AdminService> logger)
     {
         _userService = userService;
@@ -36,6 +39,7 @@ public class AdminService : IAdminService
         _notificationService = notificationService;
         _sessionService = sessionService;
         _fileStorage = fileStorage;
+        _passwordHasher = passwordHasher;
         _logger = logger;
     }
 
@@ -172,7 +176,7 @@ public class AdminService : IAdminService
 
         await _userService.UpdateApprovalStatusAsync(studentId, nameof(ApprovalStatus.Approved), adminId, null);
 
-        await _emailService.SendApprovalEmailAsync(student.Email, student.FirstName);
+        // await _emailService.SendApprovalEmailAsync(student.Email, student.FirstName);
 
         await _notificationService.CreateStudentNotificationAsync(
             studentId,
@@ -201,7 +205,7 @@ public class AdminService : IAdminService
         await _sessionService.RevokeAllUserSessionsAsync(studentId);
         _logger.LogInformation("All sessions revoked for denied student {StudentId}", studentId);
 
-        await _emailService.SendDenialEmailAsync(student.Email, student.FirstName, request.Reason);
+        // await _emailService.SendDenialEmailAsync(student.Email, student.FirstName, request.Reason);
 
         await _notificationService.CreateStudentNotificationAsync(
             studentId,
@@ -306,5 +310,67 @@ public class AdminService : IAdminService
 
         _logger.LogInformation("Profile photo uploaded for admin {AdminId}", adminId);
         return ApiResponse<string>.Ok(photoUrl, "Profile photo uploaded successfully.");
+    }
+
+    public async Task<ApiResponse<string>> CreateUserAsync(CreateUserRequest request)
+    {
+        _logger.LogInformation("Admin creating new user: {Email} with role {Role}", request.Email, request.Role);
+
+        var existingUser = await _userService.GetByEmailAsync(request.Email);
+        if (existingUser != null)
+        {
+            _logger.LogWarning("User creation failed: email {Email} already exists", request.Email);
+            return ApiResponse<string>.Fail("An account with this email already exists.");
+        }
+
+        if (!string.IsNullOrEmpty(request.PhoneNumber))
+        {
+            var existingPhone = await _userService.GetByPhoneNumberAsync(request.PhoneNumber);
+            if (existingPhone != null)
+            {
+                _logger.LogWarning("User creation failed: phone {Phone} already exists", request.PhoneNumber);
+                return ApiResponse<string>.Fail("An account with this phone number already exists.");
+            }
+        }
+
+        var user = new User
+        {
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Email = request.Email.ToLowerInvariant(),
+            PhoneNumber = request.PhoneNumber,
+            PasswordHash = _passwordHasher.Hash(request.Password),
+            EmailVerified = true,
+            PhoneVerified = false,
+            IsActive = true,
+            IsDeleted = false,
+            Role = request.Role,
+            ApprovalStatus = nameof(ApprovalStatus.Approved)
+        };
+
+        await _userService.CreateAsync(user);
+        _logger.LogInformation("User created successfully: {UserId} ({Email}) with role {Role}", user.Id, user.Email, user.Role);
+
+        return ApiResponse<string>.Ok($"User {user.Email} created successfully with role {user.Role}.");
+    }
+
+    public async Task<ApiResponse<string>> ChangeUserPasswordAsync(Guid userId, AdminChangePasswordRequest request)
+    {
+        _logger.LogInformation("Admin changing password for user {UserId}", userId);
+
+        var user = await _userService.GetByIdAsync(userId);
+        if (user == null)
+        {
+            _logger.LogWarning("Password change failed: user {UserId} not found", userId);
+            return ApiResponse<string>.Fail("User not found.");
+        }
+
+        var newPasswordHash = _passwordHasher.Hash(request.NewPassword);
+        await _userService.UpdatePasswordAsync(userId, newPasswordHash);
+
+        await _sessionService.RevokeAllUserSessionsAsync(userId);
+        _logger.LogInformation("All sessions revoked for user {UserId} — password changed", userId);
+
+        return ApiResponse<string>.Ok("Password changed successfully. User will need to log in again.");
     }
 }
