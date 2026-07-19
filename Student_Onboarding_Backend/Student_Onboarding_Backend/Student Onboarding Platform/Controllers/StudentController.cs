@@ -12,7 +12,7 @@ namespace Student_Onboarding_Platform.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = "Student")]
 public class StudentController : ControllerBase
 {
     private readonly IStudentService _studentService;

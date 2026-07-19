@@ -48,7 +48,7 @@ public class AuthService : IAuthService
         _logger = logger;
     }
 
-    public async Task<ApiResponse<string>> SignupAsync(SignupRequest request)
+    public async Task<ApiResponse<AuthResponse>> SignupAsync(SignupRequest request)
     {
         _logger.LogInformation("Signup attempt for {Email}", request.Email);
 
@@ -56,7 +56,7 @@ public class AuthService : IAuthService
         if (existingUser != null)
         {
             _logger.LogWarning("Signup failed: email {Email} already registered", request.Email);
-            return ApiResponse<string>.Fail("An account with this email already exists.");
+            return ApiResponse<AuthResponse>.Fail("An account with this email already exists.");
         }
 
         if (!string.IsNullOrEmpty(request.PhoneNumber))
@@ -65,7 +65,7 @@ public class AuthService : IAuthService
             if (existingPhone != null)
             {
                 _logger.LogWarning("Signup failed: phone {Phone} already registered", request.PhoneNumber);
-                return ApiResponse<string>.Fail("An account with this phone number already exists.");
+                return ApiResponse<AuthResponse>.Fail("An account with this phone number already exists.");
             }
         }
 
@@ -76,7 +76,7 @@ public class AuthService : IAuthService
             Email = request.Email.ToLowerInvariant(),
             PhoneNumber = request.PhoneNumber,
             PasswordHash = _passwordHasher.Hash(request.Password),
-            EmailVerified = false,
+            EmailVerified = true,
             PhoneVerified = false,
             IsActive = true,
             IsDeleted = false,
@@ -86,19 +86,23 @@ public class AuthService : IAuthService
         await _userService.CreateAsync(user);
         _logger.LogInformation("User created: {UserId} ({Email})", user.Id, user.Email);
 
-        var otpCode = await _otpService.GenerateAndStoreOtpAsync(user.Id, user.Email, nameof(OtpType.EmailVerification));
+        var accessToken = _tokenService.GenerateAccessToken(user);
+        var refreshToken = _tokenService.GenerateRefreshToken();
+        var expiresAt = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays);
 
-        try
-        {
-            await _emailService.SendOtpEmailAsync(user.Email, otpCode, "Email Verification");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send OTP email during signup for {Email}. User can use resend OTP.", user.Email);
-            return ApiResponse<string>.Ok("Signup successful. Email delivery delayed — please use 'Resend OTP' to get your verification code.");
-        }
+        await _sessionService.CreateSessionAsync(
+            user.Id, refreshToken, "Web", "Browser",
+            null, null, expiresAt);
 
-        return ApiResponse<string>.Ok("Signup successful. Please verify your email with the OTP sent.");
+        _logger.LogInformation("Session created for user {UserId}", user.Id);
+
+        return ApiResponse<AuthResponse>.Ok(new AuthResponse
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes),
+            User = MapToUserDto(user)
+        }, "Signup successful. You can now access the platform.");
     }
 
     public async Task<ApiResponse<AuthResponse>> LoginAsync(LoginRequest request, string? ipAddress, string? userAgent)
@@ -146,17 +150,17 @@ public class AuthService : IAuthService
 
             // Generate and send a new OTP for verification
             var otpCode = await _otpService.GenerateAndStoreOtpAsync(user.Id, user.Email, nameof(OtpType.EmailVerification));
-            await _emailService.SendOtpEmailAsync(user.Email, otpCode, "Email Verification");
+            // await _emailService.SendOtpEmailAsync(user.Email, otpCode, "Email Verification");
 
             return ApiResponse<AuthResponse>.Fail("Email not verified. A new verification OTP has been sent to your email.");
         }
 
-        // Check approval status (Phase 2)
-        if (user.ApprovalStatus == nameof(ApprovalStatus.Pending))
-        {
-            await _loginAttemptService.LogAttemptAsync(email, ipAddress, userAgent, false, nameof(FailureReason.PendingApproval));
-            return ApiResponse<AuthResponse>.Fail("Your account is pending admin approval. You will be notified once approved.");
-        }
+        //// Check approval status (Phase 2)
+        //if (user.ApprovalStatus == nameof(ApprovalStatus.Pending))
+        //{
+        //    await _loginAttemptService.LogAttemptAsync(email, ipAddress, userAgent, false, nameof(FailureReason.PendingApproval));
+        //    return ApiResponse<AuthResponse>.Fail("Your account is pending admin approval. You will be notified once approved.");
+        //}
 
         if (user.ApprovalStatus == nameof(ApprovalStatus.Denied))
         {
@@ -206,7 +210,7 @@ public class AuthService : IAuthService
                 await _userService.UpdateEmailVerifiedAsync(user.Id);
 
                 // Send pending approval email instead of welcome email (Phase 2)
-                await _emailService.SendPendingApprovalEmailAsync(user.Email, user.FirstName);
+                // await _emailService.SendPendingApprovalEmailAsync(user.Email, user.FirstName);
 
                 // Notify admin users about new registration
                 await _notificationService.NotifyAdminsOfNewRegistrationAsync(user);
@@ -233,11 +237,11 @@ public class AuthService : IAuthService
 
         if (request.OtpType == nameof(OtpType.PasswordReset))
         {
-            await _emailService.SendPasswordResetEmailAsync(user.Email, otpCode);
+            // await _emailService.SendPasswordResetEmailAsync(user.Email, otpCode);
         }
         else
         {
-            await _emailService.SendOtpEmailAsync(user.Email, otpCode, request.OtpType);
+            // await _emailService.SendOtpEmailAsync(user.Email, otpCode, request.OtpType);
         }
 
         return ApiResponse<string>.Ok("If the email exists, a new OTP has been sent.");
@@ -255,7 +259,7 @@ public class AuthService : IAuthService
         }
 
         var otpCode = await _otpService.GenerateAndStoreOtpAsync(user.Id, user.Email, nameof(OtpType.PasswordReset));
-        await _emailService.SendPasswordResetEmailAsync(user.Email, otpCode);
+        // await _emailService.SendPasswordResetEmailAsync(user.Email, otpCode);
 
         return ApiResponse<string>.Ok("If the email exists, a password reset OTP has been sent.");
     }

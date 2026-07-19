@@ -17,7 +17,7 @@ function Section({ title, description, children }) {
 }
 
 export default function SettingsPage() {
-  const { admin } = useAuth();
+  const { user } = useAuth();
   const toast     = useToast();
   const [pwForm, setPwForm]   = useState({ current: "", newPw: "", confirm: "" });
   const [pwLoading, setPwLoading] = useState(false);
@@ -42,7 +42,7 @@ export default function SettingsPage() {
   };
 
   // Profile picture
-  const [profilePic, setProfilePic] = useState(() => localStorage.getItem("edu_admin_pic") || admin?.profilePic || "");
+  const [profilePic, setProfilePic] = useState(() => localStorage.getItem("edu_user_pic") || user?.profilePic || "");
   const fileInputRef = React.useRef(null);
 
   const [picLoading, setPicLoading] = useState(false);
@@ -56,13 +56,13 @@ export default function SettingsPage() {
     try {
       const res = await adminProfileApi.uploadPhoto(file);
       const photoUrl = res.data; // backend returns the uploaded URL in data
-      localStorage.setItem("edu_admin_pic", photoUrl);
+      localStorage.setItem("edu_user_pic", photoUrl);
       setProfilePic(photoUrl);
       try {
-        const stored = JSON.parse(localStorage.getItem("edu_admin"));
+        const stored = JSON.parse(localStorage.getItem("edu_user"));
         if (stored) {
           stored.profilePic = photoUrl;
-          localStorage.setItem("edu_admin", JSON.stringify(stored));
+          localStorage.setItem("edu_user", JSON.stringify(stored));
         }
       } catch {}
       toast.success("Profile picture updated!");
@@ -74,13 +74,13 @@ export default function SettingsPage() {
   };
 
   const removeProfilePic = () => {
-    localStorage.removeItem("edu_admin_pic");
+    localStorage.removeItem("edu_user_pic");
     setProfilePic("");
     try {
-      const stored = JSON.parse(localStorage.getItem("edu_admin"));
+      const stored = JSON.parse(localStorage.getItem("edu_user"));
       if (stored) {
         delete stored.profilePic;
-        localStorage.setItem("edu_admin", JSON.stringify(stored));
+        localStorage.setItem("edu_user", JSON.stringify(stored));
       }
     } catch {}
     toast.success("Profile picture removed.");
@@ -97,7 +97,7 @@ export default function SettingsPage() {
               <img src={profilePic} alt="Profile" style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover", border: "3px solid var(--primary)" }} />
             ) : (
               <div style={{ width: 80, height: 80, borderRadius: "50%", background: "linear-gradient(135deg, #5B5BD6, #8B8FD4)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.4rem" }}>
-                {admin?.avatar || "AD"}
+                {user?.avatar || "US"}
               </div>
             )}
           </div>

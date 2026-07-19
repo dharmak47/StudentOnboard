@@ -10,8 +10,8 @@ public static class AnimationHelper
         if (delay > 0) await Task.Delay((int)delay);
 
         await Task.WhenAll(
-            element.FadeToAsync(1, duration, Easing.CubicOut),
-            element.TranslateToAsync(0, 0, duration, Easing.CubicOut)
+            element.FadeTo(1, duration, Easing.CubicOut),
+            element.TranslateTo(0, 0, duration, Easing.CubicOut)
         );
     }
 
@@ -35,15 +35,15 @@ public static class AnimationHelper
         if (delay > 0) await Task.Delay((int)delay);
 
         await Task.WhenAll(
-            element.FadeToAsync(1, duration, Easing.CubicOut),
-            element.TranslateToAsync(0, 0, duration, Easing.CubicOut)
+            element.FadeTo(1, duration, Easing.CubicOut),
+            element.TranslateTo(0, 0, duration, Easing.CubicOut)
         );
     }
 
     public static async Task BounceAsync(VisualElement element)
     {
-        await element.ScaleToAsync(0.95, 80, Easing.CubicOut);
-        await element.ScaleToAsync(1.0, 160, new Easing(t =>
+        await element.ScaleTo(0.95, 80, Easing.CubicOut);
+        await element.ScaleTo(1.0, 160, new Easing(t =>
         {
             return 1 + 2.56 * Math.Pow(t - 1, 3) + 1.56 * Math.Pow(t - 1, 2);
         }));
@@ -53,18 +53,18 @@ public static class AnimationHelper
     {
         for (uint i = 0; i < count; i++)
         {
-            await element.FadeToAsync(0.5, 500, Easing.CubicInOut);
-            await element.FadeToAsync(1.0, 500, Easing.CubicInOut);
+            await element.FadeTo(0.5, 500, Easing.CubicInOut);
+            await element.FadeTo(1.0, 500, Easing.CubicInOut);
         }
     }
 
     public static async Task ShakeAsync(VisualElement element)
     {
-        await element.TranslateToAsync(-8, 0, 50);
-        await element.TranslateToAsync(8, 0, 50);
-        await element.TranslateToAsync(-6, 0, 50);
-        await element.TranslateToAsync(6, 0, 50);
-        await element.TranslateToAsync(-3, 0, 50);
-        await element.TranslateToAsync(0, 0, 50);
+        await element.TranslateTo(-8, 0, 50);
+        await element.TranslateTo(8, 0, 50);
+        await element.TranslateTo(-6, 0, 50);
+        await element.TranslateTo(6, 0, 50);
+        await element.TranslateTo(-3, 0, 50);
+        await element.TranslateTo(0, 0, 50);
     }
 }

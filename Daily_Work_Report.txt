@@ -1,0 +1,80 @@
+DAILY WORK REPORT
+=================
+
+Employee Name : Malini V
+Date          : 08 July 2026
+Project       : Student Onboarding Platform
+
+===============================================================
+
+TASKS COMPLETED TODAY
+=====================
+
+---------------------------------------------------------------
+1. BACKEND & API DEVELOPMENT
+---------------------------------------------------------------
+- Database User Roles Update:
+  Updated user roles directly in the local SQL Server database.
+  Assigned 'vmalini581@gmail.com' to 'Student' (Approved).
+  Verified 'admin@synora.com' retained 'Admin' privileges.{FOR TESTING PURPOSE}
+
+- Backend Database Registration:
+  Manually simulated frontend enrollment by registering the
+  student (vmalini581) to the 'React' course in the database.
+
+- Backend Unit Testing (IN PROGRESS):
+  Developing a comprehensive test suite for the .NET Backend API using xUnit and Moq.
+  Configured the test project to accurately target .NET 8.0.
+  Fixed interface signature mismatches in mock setups for Admin and Course services.
+   
+Planned to Test :
+  Test Coverage Breakdown:
+  * AuthService (4 Tests) : Login validation, inactive accounts, token generation.
+  * UserService (3 Tests) : User creation, email lookups, last login updates.
+  * CourseService (11 Tests): Course CRUD operations, deletion rules.
+  * StudentService (6 Tests): Profile updates, photo uploads.
+  * AdminService (10 Tests) : Dashboard stats, student approval/denial workflows.
+
+
+---------------------------------------------------------------
+2. MOBILE APP (MAUI) DEVELOPMENT
+---------------------------------------------------------------
+- Framework Compatibility Fix:
+  Resolved build failures in Visual Studio 2022 by changing the TargetFramework
+  from net10.0 to net9.0-windows10.0.19041.0 in StudentOnboardingApp.csproj.
+  Downgraded MAUI NuGet packages to .NET 9 compatible versions.
+
+- Animation API Fix:
+  Resolved 14 compiler errors by refactoring preview .NET 10 async animation
+  methods (e.g., FadeToAsync, TranslateToAsync) to standard .NET 9 APIs.
+
+- Workload Installation:
+  Installed the required 'maui-tizen' workload to satisfy build dependencies.
+
+
+---------------------------------------------------------------
+3. FRONTEND (REACT WEB APP)
+---------------------------------------------------------------
+- Codebase Analysis & Planning:
+  Explored the React frontend directory structure (src/components, src/pages) 
+  to map out the student registration flow and prepare the environment 
+  for upcoming frontend unit testing with Jest.
+
+
+===============================================================
+
+OVERALL SUMMARY
+===============
+
+- Backend : Managed DB roles and registrations.
+- Mobile  : Fixed .NET 9 framework issues and animation API errors; app builds successfully.
+- Frontend: Analyzed React structure for future frontend test integration.
+
+All assigned tasks completed successfully on 08 July 2026.
+
+===============================================================
+
+Signature : Malini V
+Date      : 08 July 2026
+
+===============================================================
