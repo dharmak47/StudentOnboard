@@ -1,0 +1,13 @@
+CREATE TABLE Enquiries (
+    Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    Name NVARCHAR(100) NOT NULL,
+    Email NVARCHAR(255) NOT NULL,
+    PhoneNumber NVARCHAR(20) NULL,
+    Message NVARCHAR(MAX) NOT NULL,
+    Status NVARCHAR(50) NOT NULL DEFAULT 'New',
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+    ResolvedAt DATETIME2 NULL
+);
+
+CREATE INDEX IX_Enquiries_Status ON Enquiries (Status);
+CREATE INDEX IX_Enquiries_CreatedAt ON Enquiries (CreatedAt);

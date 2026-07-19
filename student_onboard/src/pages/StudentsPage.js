@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useStudents, useStudentStats } from "../hooks/useStudents";
 import { useToast } from "../context/ToastContext";
 import { SearchInput, FilterTabs, StatusBadge, Avatar, PageLoader, EmptyState, ConfirmModal } from "../components/common";
+import { studentsApi } from "../services/api";
 
 const STATUS_TABS = [
   { label: "All",      value: "all"      },
@@ -18,6 +19,8 @@ export default function StudentsPage() {
   const [selected, setSelected]         = useState(null);
   const [confirmAction, setConfirmAction] = useState(null); // { student, action }
   const [actionLoading, setActionLoading] = useState(false);
+  const [addUserOpen, setAddUserOpen] = useState(false);
+  const [changePassTarget, setChangePassTarget] = useState(null);
 
   const { students, loading, meta, updateStatus } = useStudents(
     { status: statusFilter, search },
@@ -55,7 +58,8 @@ export default function StudentsPage() {
         {/* Toolbar */}
         <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
           <FilterTabs options={tabsWithCounts} value={statusFilter} onChange={setStatusFilter} />
-          <div style={{ marginLeft: "auto" }}>
+          <div style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
+            <button className="btn-primary" onClick={() => setAddUserOpen(true)} style={{ justifyContent: "center", padding: "10px 16px", fontSize: "0.9rem" }}>+ Add User</button>
             <SearchInput value={search} onChange={setSearch} placeholder="Search by name or email..." />
           </div>
         </div>
@@ -110,8 +114,32 @@ export default function StudentsPage() {
           onClose={() => setSelected(null)}
           onApprove={() => setConfirmAction({ student: selected, action: "approved" })}
           onBlock={() => setConfirmAction({ student: selected, action: "blocked" })}
+          onChangePassword={() => setChangePassTarget(selected)}
         />
       )}
+
+      {/* Add User Modal */}
+      <AddUserModal
+        isOpen={addUserOpen}
+        onClose={() => setAddUserOpen(false)}
+        onSuccess={() => {
+          setAddUserOpen(false);
+          refetchStats?.();
+        }}
+        toast={toast}
+      />
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={!!changePassTarget}
+        student={changePassTarget}
+        onClose={() => setChangePassTarget(null)}
+        onSuccess={() => {
+          setChangePassTarget(null);
+          setSelected(null);
+        }}
+        toast={toast}
+      />
 
       {/* Confirm Modal */}
       <ConfirmModal
@@ -177,7 +205,7 @@ function StudentRow({ student: s, index, isSelected, onClick, onApprove, onBlock
   );
 }
 
-function StudentDrawer({ student: s, onClose, onApprove, onBlock }) {
+function StudentDrawer({ student: s, onClose, onApprove, onBlock, onChangePassword }) {
   return (
     <div className="animate-slideInRight" style={{ width: 310, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: 0, flexShrink: 0, alignSelf: "flex-start", overflow: "hidden", boxShadow: "var(--shadow-lg)" }}>
       {/* Header */}
@@ -206,13 +234,147 @@ function StudentDrawer({ student: s, onClose, onApprove, onBlock }) {
       </div>
 
       {/* Action buttons */}
-      <div style={{ padding: "0 22px 22px", display: "flex", gap: 10 }}>
-        {s.status !== "approved" && (
-          <button className="btn-success" onClick={onApprove} style={{ flex: 1, justifyContent: "center", padding: "11px" }}>✓ Approve</button>
-        )}
-        {s.status !== "blocked" && (
-          <button className="btn-danger"  onClick={onBlock}   style={{ flex: 1, justifyContent: "center", padding: "11px" }}>✕ Block</button>
-        )}
+      <div style={{ padding: "0 22px", display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "flex", gap: 10 }}>
+          {s.status !== "approved" && (
+            <button className="btn-success" onClick={onApprove} style={{ flex: 1, justifyContent: "center", padding: "11px" }}>✓ Approve</button>
+          )}
+          {s.status !== "blocked" && (
+            <button className="btn-danger"  onClick={onBlock}   style={{ flex: 1, justifyContent: "center", padding: "11px" }}>✕ Block</button>
+          )}
+        </div>
+        <button className="btn-ghost" onClick={onChangePassword} style={{ justifyContent: "center", padding: "11px", fontSize: "0.85rem" }}>🔐 Change Password</button>
+      </div>
+      <div style={{ height: 22 }} />
+    </div>
+  );
+}
+
+function AddUserModal({ isOpen, onClose, onSuccess, toast }) {
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
+    password: "",
+    role: "Student",
+  });
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim() || !form.password.trim()) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+    if (form.password.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+    setSaving(true);
+    try {
+      await studentsApi.createUser(form);
+      toast.success("User created successfully!");
+      setForm({ firstName: "", lastName: "", email: "", phoneNumber: "", password: "", role: "Student" });
+      onSuccess();
+    } catch (err) {
+      toast.error(err.message || "Failed to create user.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="card-elevated animate-fadeUp"
+        onClick={(e) => e.stopPropagation()}
+        style={{ background: "var(--surface)", borderRadius: "var(--radius-xl)", padding: 36, width: "100%", maxWidth: 500, maxHeight: "90vh", overflowY: "auto" }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: 4 }}>Add New User</h2>
+        <p style={{ color: "var(--text-muted)", marginBottom: 24, fontSize: "0.9rem" }}>Create a new student or admin account</p>
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div>
+              <label className="label">First Name</label>
+              <input className="input-field" type="text" placeholder="John" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} required />
+            </div>
+            <div>
+              <label className="label">Last Name</label>
+              <input className="input-field" type="text" placeholder="Doe" value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} required />
+            </div>
+          </div>
+          <div>
+            <label className="label">Email Address</label>
+            <input className="input-field" type="email" placeholder="john@example.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+          </div>
+          <div>
+            <label className="label">Phone Number (Optional)</label>
+            <input className="input-field" type="tel" placeholder="+1 (555) 000-0000" value={form.phoneNumber} onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })} />
+          </div>
+          <div>
+            <label className="label">Password</label>
+            <input className="input-field" type="password" placeholder="••••••••" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
+          </div>
+          <div>
+            <label className="label">Role</label>
+            <select className="input-field" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} style={{ cursor: "pointer" }}>
+              <option value="Student">Student</option>
+              <option value="Admin">Admin</option>
+            </select>
+          </div>
+          <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 12 }}>
+            <button className="btn-ghost" onClick={onClose} type="button">Cancel</button>
+            <button className="btn-primary" disabled={saving} type="submit">{saving ? "Creating..." : "Create User"}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function ChangePasswordModal({ isOpen, student, onClose, onSuccess, toast }) {
+  const [newPassword, setNewPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!newPassword.trim() || newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+    setSaving(true);
+    try {
+      await studentsApi.changePassword(student.id, newPassword);
+      toast.success(`Password changed for ${student.name}. They will need to log in again.`);
+      setNewPassword("");
+      onSuccess();
+    } catch (err) {
+      toast.error(err.message || "Failed to change password.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!isOpen || !student) return null;
+
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="card-elevated animate-fadeUp"
+        onClick={(e) => e.stopPropagation()}
+        style={{ background: "var(--surface)", borderRadius: "var(--radius-xl)", padding: 36, width: "100%", maxWidth: 420, maxHeight: "90vh", overflowY: "auto" }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: 8 }}>Change Password</h2>
+        <p style={{ color: "var(--text-muted)", marginBottom: 24, fontSize: "0.9rem" }}>Set a new password for <strong>{student.name}</strong></p>
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div>
+            <label className="label">New Password</label>
+            <input className="input-field" type="password" placeholder="••••••••" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+          </div>
+          <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 12 }}>
+            <button className="btn-ghost" onClick={onClose} type="button">Cancel</button>
+            <button className="btn-primary" disabled={saving} type="submit">{saving ? "Updating..." : "Change Password"}</button>
+          </div>
+        </form>
       </div>
     </div>
   );

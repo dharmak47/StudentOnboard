@@ -54,6 +54,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFaqService, FaqService>();
         services.AddHttpClient("Bytescale");
         services.AddScoped<IFileStorageService, BytescaleStorageService>();
+        services.AddScoped<IEnquiryService, EnquiryService>();
 
         // Background services
         services.AddHostedService<BirthdayNotificationService>();
