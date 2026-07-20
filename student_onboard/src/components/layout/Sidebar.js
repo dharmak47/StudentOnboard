@@ -10,6 +10,8 @@ const ADMIN_NAV = [
   { id: "registrations",  icon: "▤",  label: "Registrations"  },
   { id: "courses",        icon: "◈",  label: "Courses"        },
   { id: "invoices",       icon: "🧾", label: "Invoices"       },
+  { id: "course-completion", icon: "✓", label: "Completions" },
+  // { id: "analytics",      icon: "📊", label: "Analytics"      }, // Commented out - code preserved
   { id: "notifications",  icon: <FiBell size={16} />, label: "Notifications"  },
   { id: "faqs",           icon: "?",  label: "FAQs"           },
   { id: "enquiries",      icon: <FiMail size={16} />, label: "Enquiries"      },
@@ -18,8 +20,12 @@ const ADMIN_NAV = [
 const STUDENT_NAV = [
   { id: "dashboard",      icon: "▦",  label: "Dashboard"      },
   { id: "courses",        icon: "◈",  label: "Courses"        },
-  { id: "invoices",       icon: "🧾", label: "Payment History" },
+  { id: "invoices",       icon: "🧾", label: "Invoices"       },
+  // { id: "progress",       icon: "📈", label: "My Progress"     },
+  { id: "certificates",   icon: "📜", label: "Certificates"   },
+  { id: "payments",       icon: "💳", label: "Payment History" },
   { id: "notifications",  icon: <FiBell size={16} />, label: "Notifications"  },
+  { id: "help",           icon: "❓", label: "Help & Support"  },
   { id: "profile",        icon: "◎",  label: "My Profile"     },
 ];
 

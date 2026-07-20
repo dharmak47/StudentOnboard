@@ -38,6 +38,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFaqRepository, FaqRepository>();
         services.AddScoped<IInvoiceRepository, InvoiceRepository>();
         services.AddScoped<IOrganizationSettingsRepository, OrganizationSettingsRepository>();
+        services.AddScoped<IMonthlyAnalyticsRepository, MonthlyAnalyticsRepository>();
 
         // Services
         services.AddScoped<IAuthService, AuthService>();
@@ -59,6 +60,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEnquiryService, EnquiryService>();
         services.AddScoped<ICertificateService, CertificateService>();
         services.AddScoped<IInvoiceService, InvoiceService>();
+        services.AddScoped<IStudentProgressService, StudentProgressService>();
+        services.AddScoped<IAnalyticsService, AnalyticsService>();
 
         // Background services
         services.AddHostedService<BirthdayNotificationService>();

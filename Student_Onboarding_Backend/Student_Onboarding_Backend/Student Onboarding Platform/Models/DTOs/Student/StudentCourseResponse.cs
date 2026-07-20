@@ -12,4 +12,13 @@ public class StudentCourseResponse
     public string PaymentStatus { get; set; } = string.Empty;
     public decimal? PaymentAmount { get; set; }
     public DateTime RegisteredAt { get; set; }
+
+    // Progress tracking
+    public string Status { get; set; } = string.Empty; // "Pending", "Active", "Completed"
+    public decimal ProgressPercentage { get; set; } = 0;
+    public int CompletedModules { get; set; } = 0;
+    public int TotalModules { get; set; } = 0;
+    public DateTime? ExpectedCompletionDate { get; set; }
+    public int DaysRemaining { get; set; } = 0;
+    public bool IsCompleted { get; set; } = false;
 }

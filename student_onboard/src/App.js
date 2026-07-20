@@ -16,32 +16,44 @@ import NotificationsPage  from "./pages/NotificationsPage";
 import FaqsPage           from "./pages/FaqsPage";
 import InvoicesPage       from "./pages/InvoicesPage";
 import SettingsPage       from "./pages/SettingsPage";
+import AnalyticsDashboardPage from "./pages/admin/AnalyticsDashboardPage";
+import CourseCompletionPage from "./pages/admin/CourseCompletionPage";
 import StudentDashboardPage      from "./pages/StudentDashboardPage";
 import StudentCoursesPage        from "./pages/StudentCoursesPage";
 import StudentInvoicesPage       from "./pages/StudentInvoicesPage";
 import StudentProfilePage        from "./pages/StudentProfilePage";
 import StudentNotificationsPage  from "./pages/StudentNotificationsPage";
+import StudentCertificatesPage   from "./pages/StudentCertificatesPage";
+import StudentPaymentHistoryPage from "./pages/StudentPaymentHistoryPage";
+import StudentProgressTrackingPage from "./pages/StudentProgressTrackingPage";
+import StudentHelpPage           from "./pages/StudentHelpPage";
 import ApprovalPendingPage       from "./pages/ApprovalPendingPage";
 
 import "./styles/globals.css";
 
 const ADMIN_PAGES = {
-  dashboard:      DashboardPage,
-  students:       StudentsPage,
-  registrations:  RegistrationsPage,
-  courses:        CoursesPage,
-  enquiries:     EnquiriesPage,
-  invoices:       InvoicesPage,
-  notifications:  NotificationsPage,
-  faqs:           FaqsPage,
-  settings:       SettingsPage,
+  dashboard:           DashboardPage,
+  students:            StudentsPage,
+  registrations:       RegistrationsPage,
+  courses:             CoursesPage,
+  "course-completion": CourseCompletionPage,
+  analytics:           AnalyticsDashboardPage,
+  enquiries:           EnquiriesPage,
+  invoices:            InvoicesPage,
+  notifications:       NotificationsPage,
+  faqs:                FaqsPage,
+  settings:            SettingsPage,
 };
 
 const STUDENT_PAGES = {
   dashboard:      StudentDashboardPage,
   courses:        StudentCoursesPage,
   invoices:       StudentInvoicesPage,
+  progress:       StudentProgressTrackingPage,
+  certificates:   StudentCertificatesPage,
+  payments:       StudentPaymentHistoryPage,
   notifications:  StudentNotificationsPage,
+  help:           StudentHelpPage,
   profile:        StudentProfilePage,
 };
 

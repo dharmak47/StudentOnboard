@@ -1,3 +1,5 @@
+using Student_Onboarding_Platform.Models.DTOs.Student;
+
 namespace Student_Onboarding_Platform.Models.DTOs.Admin;
 
 public class StudentListResponse
@@ -11,4 +13,5 @@ public class StudentListResponse
     public bool EmailVerified { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
+    public List<StudentCourseResponse> RegisteredCourses { get; set; } = new();
 }

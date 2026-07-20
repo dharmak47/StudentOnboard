@@ -1,10 +1,10 @@
 // src/pages/DashboardPage.js
 import React, { useEffect, useState, useCallback } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
-import { useStudentStats } from "../hooks/useStudents";
+import { useStudentStats, useStudents } from "../hooks/useStudents";
 import { useCourses } from "../hooks/useCourses";
 import { analyticsApi } from "../services/api";
-import { StatCard, StatusBadge, PageLoader } from "../components/common";
+import { StatCard, StatusBadge, PageLoader, Avatar } from "../components/common";
 
 const COLORS = ["#5B5BD6", "#8B8FD4", "#C4C3E8", "#F5D7F0", "#EBBFE5"];
 
@@ -23,6 +23,7 @@ const FALLBACK_DIST = [
 export default function DashboardPage() {
   const { stats, loading: statsLoading, refetchStats } = useStudentStats();
   const { courses, loading: coursesLoading, refetch: refetchCourses } = useCourses();
+  const { students, loading: studentsLoading } = useStudents({ status: "all", search: "" });
   const [analytics, setAnalytics] = useState(null);
   const [backendOffline, setBackendOffline] = useState(false);
 
@@ -130,6 +131,86 @@ export default function DashboardPage() {
                 <StatusBadge status={c.status} />
               </div>
             ))}
+          </div>
+        )}
+      </div>
+
+      {/* Students Course Status */}
+      <div className="card animate-fadeUp stagger-5" style={{ padding: 28 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1rem", fontWeight: 700 }}>Students Course Status</h3>
+          <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>{students?.length ?? 0} students</span>
+        </div>
+        {studentsLoading ? (
+          <p style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>Loading students...</p>
+        ) : !students?.length ? (
+          <p style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>No students found.</p>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                  <th style={{ textAlign: "left", padding: "10px 0", fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Student</th>
+                  <th style={{ textAlign: "left", padding: "10px 0", fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Course</th>
+                  <th style={{ textAlign: "left", padding: "10px 0", fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Progress</th>
+                  <th style={{ textAlign: "left", padding: "10px 0", fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Course Status</th>
+                  <th style={{ textAlign: "left", padding: "10px 0", fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Student Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {students.slice(0, 10).map((s, i) => {
+                  const activeCourse = s.registeredCourses?.[0];
+                  return (
+                    <tr key={s.id} style={{ borderBottom: i < Math.min(10, students.length - 1) ? "1px solid var(--border-light)" : "none" }}>
+                      <td style={{ padding: "12px 0", display: "flex", alignItems: "center", gap: 10 }}>
+                        <Avatar initials={s.avatar} size={32} />
+                        <div>
+                          <div style={{ fontSize: "0.85rem", fontWeight: 500, color: "var(--text-primary)" }}>{s.name}</div>
+                          <div style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>{s.email}</div>
+                        </div>
+                      </td>
+                      <td style={{ padding: "12px 0", fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: 500 }}>{activeCourse?.courseName || "—"}</td>
+                      <td style={{ padding: "12px 0" }}>
+                        {activeCourse ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: "150px" }}>
+                            <div style={{ flex: 1, background: "var(--surface-3)", borderRadius: "4px", height: "6px", overflow: "hidden" }}>
+                              <div style={{ background: activeCourse.isCompleted ? "#22C55E" : activeCourse.progressPercentage >= 75 ? "#22C55E" : activeCourse.progressPercentage >= 50 ? "#F59E0B" : activeCourse.progressPercentage >= 25 ? "#3B82F6" : "#EF4444", height: "100%", width: `${activeCourse.isCompleted ? 100 : activeCourse.progressPercentage}%`, transition: "width 0.3s ease" }} />
+                            </div>
+                            <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)", minWidth: "50px" }}>{activeCourse.isCompleted ? "100%" : `${(activeCourse.progressPercentage || 0).toFixed(0)}%`}</span>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>—</span>
+                        )}
+                      </td>
+                      <td style={{ padding: "12px 0" }}>
+                        {activeCourse ? (
+                          <span style={{
+                            display: "inline-block",
+                            padding: "4px 10px",
+                            borderRadius: 6,
+                            fontSize: "0.75rem",
+                            fontWeight: 600,
+                            background: activeCourse.isCompleted ? "#DBEAFE" : "#FEF3C7",
+                            color: activeCourse.isCompleted ? "#0C4A6E" : "#92400E",
+                            border: `1px solid ${activeCourse.isCompleted ? "#7DD3FC" : "#FCD34D"}`,
+                          }}>
+                            {activeCourse.isCompleted ? "✓ Completed" : "In Progress"}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>—</span>
+                        )}
+                      </td>
+                      <td style={{ padding: "12px 0" }}>
+                        <StatusBadge status={s.status} />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            {students.length > 10 && (
+              <p style={{ marginTop: 12, fontSize: "0.8rem", color: "var(--text-muted)", textAlign: "center" }}>Showing 10 of {students.length} students</p>
+            )}
           </div>
         )}
       </div>

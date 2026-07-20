@@ -195,6 +195,7 @@ export default function StudentCoursesPage({ onNavigate }) {
                   <tr style={{ borderBottom: "1px solid var(--border)" }}>
                     <th style={{ textAlign: "left", padding: "12px 0", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Course Name</th>
                     <th style={{ textAlign: "left", padding: "12px 0", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Fees</th>
+                    <th style={{ textAlign: "left", padding: "12px 0", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Course Status</th>
                     <th style={{ textAlign: "left", padding: "12px 0", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Payment Status</th>
                     <th style={{ textAlign: "left", padding: "12px 0", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Registered Date</th>
                     <th style={{ textAlign: "right", padding: "12px 0", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Invoice</th>
@@ -208,6 +209,9 @@ export default function StudentCoursesPage({ onNavigate }) {
                       </td>
                       <td style={{ padding: "12px 0", color: "var(--text-secondary)", fontSize: "0.9rem" }}>
                         ₹{reg.fees}
+                      </td>
+                      <td style={{ padding: "12px 0" }}>
+                        <StatusBadge status={reg.isCompleted ? "completed" : reg.status || "pending"} />
                       </td>
                       <td style={{ padding: "12px 0" }}>
                         <StatusBadge status={reg.paymentStatus} />
