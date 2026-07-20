@@ -244,7 +244,9 @@ public class AdminService : IAdminService
                 PaymentAmount = reg.PaymentAmount,
                 PaymentDate = reg.PaymentDate,
                 Notes = reg.Notes,
-                RegisteredAt = reg.CreatedAt
+                RegisteredAt = reg.CreatedAt,
+                IsCompleted = reg.IsCompleted,
+                CompletedAt = reg.CompletedAt
             });
         }
 
@@ -293,6 +295,19 @@ public class AdminService : IAdminService
 
         _logger.LogInformation("Payment updated for registration {RegistrationId}: {Status}", registrationId, request.PaymentStatus);
         return ApiResponse<string>.Ok("Payment updated successfully.");
+    }
+
+    public async Task<ApiResponse<string>> CompleteCourseAsync(Guid registrationId)
+    {
+        var registration = await _registrationRepository.GetByIdAsync(registrationId);
+        if (registration == null)
+            return ApiResponse<string>.Fail("Registration not found.");
+
+        if (registration.IsCompleted)
+            return ApiResponse<string>.Fail("Course is already marked as completed.");
+
+        await _registrationRepository.UpdateCompletionAsync(registrationId, true, DateTime.UtcNow);
+        return ApiResponse<string>.Ok("Course marked as completed successfully.");
     }
 
     public async Task<ApiResponse<string>> UploadProfilePhotoAsync(Guid adminId, IFormFile photo)

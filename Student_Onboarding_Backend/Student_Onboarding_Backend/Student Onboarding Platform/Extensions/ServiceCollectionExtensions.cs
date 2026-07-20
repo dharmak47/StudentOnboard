@@ -57,6 +57,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient("Bytescale");
         services.AddScoped<IFileStorageService, BytescaleStorageService>();
         services.AddScoped<IEnquiryService, EnquiryService>();
+        services.AddScoped<ICertificateService, CertificateService>();
         services.AddScoped<IInvoiceService, InvoiceService>();
 
         // Background services

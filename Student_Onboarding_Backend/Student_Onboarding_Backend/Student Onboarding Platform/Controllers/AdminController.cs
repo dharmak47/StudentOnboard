@@ -175,6 +175,46 @@ public class AdminController : ControllerBase
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
+    [HttpPut("course-registrations/{id}/complete")]
+    public async Task<IActionResult> CompleteCourse(Guid id)
+    {
+        var result = await _adminService.CompleteCourseAsync(id);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpGet("certificates/{registrationId}")]
+    public async Task<IActionResult> DownloadCertificate(
+        Guid registrationId,
+        [FromServices] Student_Onboarding_Platform.Data.Repositories.Interfaces.ICourseRegistrationRepository _registrationRepository,
+        [FromServices] Student_Onboarding_Platform.Data.Repositories.Interfaces.IUserRepository _userRepository,
+        [FromServices] Student_Onboarding_Platform.Data.Repositories.Interfaces.ICourseRepository _courseRepository,
+        [FromServices] ICertificateService _certificateService)
+    {
+        var registration = await _registrationRepository.GetByIdAsync(registrationId);
+        if (registration == null)
+            return NotFound(new { success = false, message = "Registration not found." });
+
+        if (!registration.IsCompleted || registration.CompletedAt == null)
+            return BadRequest(new { success = false, message = "Course must be completed to download certificate." });
+
+        var user = await _userRepository.GetByIdAsync(registration.UserId);
+        var course = await _courseRepository.GetByIdAsync(registration.CourseId);
+
+        if (user == null || course == null)
+            return NotFound(new { success = false, message = "User or Course not found." });
+
+        var studentName = $"{user.FirstName} {user.LastName}";
+        var verificationId = $"SYN-{registration.Id.ToString().Substring(0, 8).ToUpper()}";
+        
+        var pdfBytes = _certificateService.GenerateCertificate(
+            studentName, 
+            course.Name, 
+            registration.CompletedAt.Value,
+            verificationId);
+
+        return File(pdfBytes, "application/pdf", $"{course.Name.Replace(" ", "_")}_Certificate.pdf");
+    }
+
     [HttpPost("profile/photo")]
     public async Task<IActionResult> UploadProfilePhoto(IFormFile photo)
     {

@@ -1,0 +1,70 @@
+name: Build Backend
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore Backend
+        run: |
+          dotnet restore "Student_Onboarding_Backend/Student_Onboarding_Backend/Student Onboarding Platform/Student Onboarding Platform.csproj"
+
+      - name: Build Backend
+        run: |
+          dotnet build "Student_Onboarding_Backend/Student_Onboarding_Backend/Student Onboarding Platform/Student Onboarding Platform.csproj" --configuration Release --no-restore
+
+      - name: Restore Test Project
+        run: |
+          dotnet restore "Student_Onboarding_Backend/Student_Onboarding_Backend/StudentOnboarding.Tests/StudentOnboarding.Tests.csproj"
+
+      - name: Run Tests with Code Coverage
+        run: |
+          dotnet test "Student_Onboarding_Backend/Student_Onboarding_Backend/StudentOnboarding.Tests/StudentOnboarding.Tests.csproj" `
+            --configuration Release `
+            --collect:"XPlat Code Coverage" `
+            --logger trx
+
+      - name: Install ReportGenerator
+        run: |
+          dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Generate Code Coverage Report
+        shell: pwsh
+        run: |
+          reportgenerator `
+            -reports:**/coverage.cobertura.xml `
+            -targetdir:coveragereport `
+            -reporttypes:"Html;Cobertura;TextSummary"
+
+      - name: Display Coverage Summary
+        shell: pwsh
+        run: |
+          Get-Content coveragereport/Summary.txt
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: CodeCoverageReport
+          path: coveragereport
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: TestResults
+          path: "**/TestResults"

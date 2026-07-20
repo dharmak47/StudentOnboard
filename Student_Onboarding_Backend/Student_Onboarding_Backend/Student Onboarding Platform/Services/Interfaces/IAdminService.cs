@@ -14,6 +14,7 @@ public interface IAdminService
     Task<ApiResponse<string>> DenyStudentAsync(Guid studentId, Guid adminId, DenyStudentRequest request);
     Task<ApiResponse<PaginatedResponse<CourseRegistrationListResponse>>> GetCourseRegistrationsAsync(int page, int pageSize);
     Task<ApiResponse<string>> UpdatePaymentAsync(Guid registrationId, UpdatePaymentRequest request);
+    Task<ApiResponse<string>> CompleteCourseAsync(Guid registrationId);
     Task<ApiResponse<string>> UploadProfilePhotoAsync(Guid adminId, IFormFile photo);
     Task<ApiResponse<string>> CreateUserAsync(CreateUserRequest request);
     Task<ApiResponse<string>> ChangeUserPasswordAsync(Guid userId, AdminChangePasswordRequest request);
