@@ -14,11 +14,13 @@ import CoursesPage        from "./pages/CoursesPage";
 import EnquiriesPage from "./pages/EnquiriesPage";
 import NotificationsPage  from "./pages/NotificationsPage";
 import FaqsPage           from "./pages/FaqsPage";
+import InvoicesPage       from "./pages/InvoicesPage";
 import SettingsPage       from "./pages/SettingsPage";
 import AnalyticsDashboardPage from "./pages/admin/AnalyticsDashboardPage";
 import CourseCompletionPage from "./pages/admin/CourseCompletionPage";
 import StudentDashboardPage      from "./pages/StudentDashboardPage";
 import StudentCoursesPage        from "./pages/StudentCoursesPage";
+import StudentInvoicesPage       from "./pages/StudentInvoicesPage";
 import StudentProfilePage        from "./pages/StudentProfilePage";
 import StudentNotificationsPage  from "./pages/StudentNotificationsPage";
 import StudentCertificatesPage   from "./pages/StudentCertificatesPage";
@@ -37,6 +39,7 @@ const ADMIN_PAGES = {
   "course-completion": CourseCompletionPage,
   analytics:           AnalyticsDashboardPage,
   enquiries:           EnquiriesPage,
+  invoices:            InvoicesPage,
   notifications:       NotificationsPage,
   faqs:                FaqsPage,
   settings:            SettingsPage,
@@ -45,6 +48,7 @@ const ADMIN_PAGES = {
 const STUDENT_PAGES = {
   dashboard:      StudentDashboardPage,
   courses:        StudentCoursesPage,
+  invoices:       StudentInvoicesPage,
   progress:       StudentProgressTrackingPage,
   certificates:   StudentCertificatesPage,
   payments:       StudentPaymentHistoryPage,
@@ -98,7 +102,6 @@ function AppShell() {
   if (isStudent && isPending) return <ApprovalPendingPage />;
 
   const PAGES = isAdmin ? ADMIN_PAGES : STUDENT_PAGES;
-  const defaultPage = isAdmin ? "dashboard" : "dashboard";
   const PageComponent = PAGES[page] || (isAdmin ? DashboardPage : StudentDashboardPage);
 
   return (

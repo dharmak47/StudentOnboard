@@ -19,6 +19,7 @@ public class AdminService : IAdminService
     private readonly ISessionService _sessionService;
     private readonly IFileStorageService _fileStorage;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IInvoiceService _invoiceService;
     private readonly IStudentProgressService _progressService;
     private readonly ILogger<AdminService> _logger;
 
@@ -31,6 +32,7 @@ public class AdminService : IAdminService
         ISessionService sessionService,
         IFileStorageService fileStorage,
         IPasswordHasher passwordHasher,
+        IInvoiceService invoiceService,
         IStudentProgressService progressService,
         ILogger<AdminService> logger)
     {
@@ -42,6 +44,7 @@ public class AdminService : IAdminService
         _sessionService = sessionService;
         _fileStorage = fileStorage;
         _passwordHasher = passwordHasher;
+        _invoiceService = invoiceService;
         _progressService = progressService;
         _logger = logger;
     }
@@ -355,6 +358,19 @@ public class AdminService : IAdminService
             $"Your payment for {course?.Name ?? "your course"} has been updated to: {request.PaymentStatus}.",
             registrationId);
 
+        // Auto-generate the invoice once a payment is fully settled (idempotent).
+        if (string.Equals(request.PaymentStatus, "Paid", StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                await _invoiceService.GetOrCreateForRegistrationAsync(registrationId, null, isAdmin: true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to auto-create invoice for registration {RegistrationId}", registrationId);
+            }
+        }
+
         _logger.LogInformation("Payment updated for registration {RegistrationId}: {Status}", registrationId, request.PaymentStatus);
         return ApiResponse<string>.Ok("Payment updated successfully.");
     }
@@ -368,7 +384,7 @@ public class AdminService : IAdminService
         if (registration.IsCompleted)
             return ApiResponse<string>.Fail("Course is already marked as completed.");
 
-        await _registrationRepository.UpdateCompletionAsync(registrationId, true, DateTime.UtcNow);
+        await _registrationRepository.UpdateCompletionAsync(registrationId, DateTime.UtcNow, null, null, null);
         return ApiResponse<string>.Ok("Course marked as completed successfully.");
     }
 

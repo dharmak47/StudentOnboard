@@ -9,6 +9,7 @@ const ADMIN_NAV = [
   { id: "students",       icon: "◎",  label: "Students"       },
   { id: "registrations",  icon: "▤",  label: "Registrations"  },
   { id: "courses",        icon: "◈",  label: "Courses"        },
+  { id: "invoices",       icon: "🧾", label: "Invoices"       },
   { id: "course-completion", icon: "✓", label: "Completions" },
   // { id: "analytics",      icon: "📊", label: "Analytics"      }, // Commented out - code preserved
   { id: "notifications",  icon: <FiBell size={16} />, label: "Notifications"  },
@@ -19,6 +20,7 @@ const ADMIN_NAV = [
 const STUDENT_NAV = [
   { id: "dashboard",      icon: "▦",  label: "Dashboard"      },
   { id: "courses",        icon: "◈",  label: "Courses"        },
+  { id: "invoices",       icon: "🧾", label: "Invoices"       },
   // { id: "progress",       icon: "📈", label: "My Progress"     },
   { id: "certificates",   icon: "📜", label: "Certificates"   },
   { id: "payments",       icon: "💳", label: "Payment History" },

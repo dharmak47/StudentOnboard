@@ -22,6 +22,7 @@ public class StudentController : ControllerBase
     private readonly ICourseReviewRepository _reviewRepository;
     private readonly IUserService _userService;
     private readonly IFaqService _faqService;
+    private readonly IInvoiceService _invoiceService;
     private readonly IStudentProgressService _progressService;
 
     public StudentController(
@@ -32,6 +33,7 @@ public class StudentController : ControllerBase
         ICourseReviewRepository reviewRepository,
         IUserService userService,
         IFaqService faqService,
+        IInvoiceService invoiceService,
         IStudentProgressService progressService)
     {
         _studentService = studentService;
@@ -41,6 +43,7 @@ public class StudentController : ControllerBase
         _reviewRepository = reviewRepository;
         _userService = userService;
         _faqService = faqService;
+        _invoiceService = invoiceService;
         _progressService = progressService;
     }
 
@@ -220,6 +223,32 @@ public class StudentController : ControllerBase
     public async Task<IActionResult> GetFaqs()
     {
         var result = await _faqService.GetActiveFaqsAsync();
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    // ── Invoices (read-only for students) ──────────────────────────────
+
+    [HttpGet("courses/invoices")]
+    public async Task<IActionResult> GetMyInvoices()
+    {
+        var userId = User.GetUserId();
+        var result = await _invoiceService.GetForStudentAsync(userId);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpGet("courses/invoices/{id}")]
+    public async Task<IActionResult> GetMyInvoice(Guid id)
+    {
+        var userId = User.GetUserId();
+        var result = await _invoiceService.GetByIdForStudentAsync(id, userId);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpGet("courses/registrations/{registrationId}/invoice")]
+    public async Task<IActionResult> GetInvoiceForRegistration(Guid registrationId)
+    {
+        var userId = User.GetUserId();
+        var result = await _invoiceService.GetOrCreateForRegistrationAsync(registrationId, userId, isAdmin: false);
         return result.Success ? Ok(result) : BadRequest(result);
     }
 

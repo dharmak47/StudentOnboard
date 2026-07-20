@@ -16,7 +16,6 @@ CREATE TABLE IF NOT EXISTS UserSessions (
     IsRevoked BOOLEAN DEFAULT FALSE,
     CreatedAt TIMESTAMP DEFAULT NOW(),
     LastUsedAt TIMESTAMP,
-
     CONSTRAINT fk_usersessions_user
         FOREIGN KEY (UserId) REFERENCES Users(Id)
 );

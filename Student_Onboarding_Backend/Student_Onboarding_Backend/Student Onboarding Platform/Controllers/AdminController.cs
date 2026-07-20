@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Student_Onboarding_Platform.Extensions;
 using Student_Onboarding_Platform.Models.DTOs.Admin;
+using Student_Onboarding_Platform.Models.DTOs.Invoice;
 using Student_Onboarding_Platform.Services.Interfaces;
 
 namespace Student_Onboarding_Platform.Controllers;
@@ -15,6 +16,7 @@ public class AdminController : ControllerBase
     private readonly ICourseService _courseService;
     private readonly INotificationService _notificationService;
     private readonly IFaqService _faqService;
+    private readonly IInvoiceService _invoiceService;
     private readonly IAnalyticsService _analyticsService;
 
     public AdminController(
@@ -22,12 +24,14 @@ public class AdminController : ControllerBase
         ICourseService courseService,
         INotificationService notificationService,
         IFaqService faqService,
+        IInvoiceService invoiceService,
         IAnalyticsService analyticsService)
     {
         _adminService = adminService;
         _courseService = courseService;
         _notificationService = notificationService;
         _faqService = faqService;
+        _invoiceService = invoiceService;
         _analyticsService = analyticsService;
     }
 
@@ -255,6 +259,50 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> DeleteFaq(Guid id)
     {
         var result = await _faqService.DeleteFaqAsync(id);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    // ── Invoices ──────────────────────────────────────────────────────
+
+    [HttpGet("invoices")]
+    public async Task<IActionResult> GetInvoices([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        var result = await _invoiceService.GetAllAsync(page, pageSize);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpGet("invoices/{id}")]
+    public async Task<IActionResult> GetInvoiceById(Guid id)
+    {
+        var result = await _invoiceService.GetByIdAsync(id);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpPut("invoices/{id}")]
+    public async Task<IActionResult> UpdateInvoice(Guid id, [FromBody] UpdateInvoiceRequest request)
+    {
+        var result = await _invoiceService.UpdateAsync(id, request);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpGet("registrations/{registrationId}/invoice")]
+    public async Task<IActionResult> GetOrCreateInvoiceForRegistration(Guid registrationId)
+    {
+        var result = await _invoiceService.GetOrCreateForRegistrationAsync(registrationId, null, isAdmin: true);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpGet("organization-settings")]
+    public async Task<IActionResult> GetOrganizationSettings()
+    {
+        var result = await _invoiceService.GetOrganizationSettingsAsync();
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpPut("organization-settings")]
+    public async Task<IActionResult> UpdateOrganizationSettings([FromBody] UpdateOrganizationSettingsRequest request)
+    {
+        var result = await _invoiceService.UpdateOrganizationSettingsAsync(request);
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
