@@ -73,11 +73,13 @@ public class CertificateService : ICertificateService
                     {
                         row.RelativeItem().AlignLeft().Column(col => 
                         {
+                            col.Item().PaddingBottom(5).Text("Dharmarajan K").FontSize(18).Italic().FontColor("#1E3A8A");
                             col.Item().Text("_______________________").FontColor(Colors.Grey.Medium);
                             col.Item().PaddingTop(5).Text("Center Head").FontSize(12).FontColor(Colors.Grey.Darken2);
                         });
                         row.RelativeItem().AlignRight().Column(col => 
                         {
+                            col.Item().PaddingBottom(5).Text("Malini V").FontSize(18).Italic().FontColor("#1E3A8A");
                             col.Item().Text("_______________________").FontColor(Colors.Grey.Medium);
                             col.Item().PaddingTop(5).Text("Authorized Signatory").FontSize(12).FontColor(Colors.Grey.Darken2);
                         });
