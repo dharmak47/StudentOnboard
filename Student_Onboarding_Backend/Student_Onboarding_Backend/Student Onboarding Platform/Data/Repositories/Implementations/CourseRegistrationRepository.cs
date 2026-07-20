@@ -53,6 +53,14 @@ public class CourseRegistrationRepository : ICourseRegistrationRepository
             new { UserId = userId, CourseId = courseId, IsActive = true });
     }
 
+    public async Task<IEnumerable<CourseRegistration>> GetAllAsync()
+    {
+        using var conn = _db.CreateConnection();
+        return await conn.QueryAsync<CourseRegistration>(
+            "SELECT * FROM CourseRegistrations WHERE IsActive = @IsActive ORDER BY CreatedAt DESC",
+            new { IsActive = true });
+    }
+
     public async Task<IEnumerable<CourseRegistration>> GetAllAsync(int offset, int pageSize)
     {
         using var conn = _db.CreateConnection();
@@ -100,6 +108,63 @@ public class CourseRegistrationRepository : ICourseRegistrationRepository
                 PaymentAmount = paymentAmount,
                 PaymentDate = paymentStatus == "Paid" ? DateTime.UtcNow : (DateTime?)null,
                 Notes = notes,
+                UpdatedAt = DateTime.UtcNow
+            });
+    }
+
+    public async Task UpdateAsync(CourseRegistration registration)
+    {
+        registration.UpdatedAt = DateTime.UtcNow;
+
+        using var conn = _db.CreateConnection();
+        await conn.ExecuteAsync(@"
+            UPDATE CourseRegistrations SET UserId = @UserId, CourseId = @CourseId,
+                PaymentStatus = @PaymentStatus, PaymentAmount = @PaymentAmount,
+                PaymentDate = @PaymentDate, Notes = @Notes, IsActive = @IsActive,
+                IsCompleted = @IsCompleted, CompletedAt = @CompletedAt,
+                ExpectedCompletionDate = @ExpectedCompletionDate, CurrentModule = @CurrentModule,
+                TotalModules = @TotalModules, CompletedModules = @CompletedModules,
+                ProgressPercentage = @ProgressPercentage, LastProgressUpdated = @LastProgressUpdated,
+                Grade = @Grade, AdminNotes = @AdminNotes, CompletedByAdminId = @CompletedByAdminId,
+                UpdatedAt = @UpdatedAt
+            WHERE Id = @Id",
+            registration);
+    }
+
+    public async Task<IEnumerable<CourseRegistration>> GetIncompleteRegistrationsByCourseAsync(Guid courseId, int offset, int pageSize)
+    {
+        using var conn = _db.CreateConnection();
+        return await conn.QueryAsync<CourseRegistration>(@"
+            SELECT * FROM CourseRegistrations
+            WHERE CourseId = @CourseId AND IsCompleted = @IsCompleted AND IsActive = @IsActive
+            ORDER BY CreatedAt DESC OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY",
+            new { CourseId = courseId, IsCompleted = false, IsActive = true, Offset = offset, PageSize = pageSize });
+    }
+
+    public async Task<int> GetIncompleteCountByCourseAsync(Guid courseId)
+    {
+        using var conn = _db.CreateConnection();
+        return await conn.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM CourseRegistrations WHERE CourseId = @CourseId AND IsCompleted = @IsCompleted AND IsActive = @IsActive",
+            new { CourseId = courseId, IsCompleted = false, IsActive = true });
+    }
+
+    public async Task UpdateCompletionAsync(Guid id, DateTime completedAt, decimal? grade, string? adminNotes, Guid? completedByAdminId)
+    {
+        using var conn = _db.CreateConnection();
+        await conn.ExecuteAsync(@"
+            UPDATE CourseRegistrations SET IsCompleted = @IsCompleted, CompletedAt = @CompletedAt,
+                Grade = @Grade, AdminNotes = @AdminNotes, CompletedByAdminId = @CompletedByAdminId,
+                UpdatedAt = @UpdatedAt
+            WHERE Id = @Id",
+            new
+            {
+                Id = id,
+                IsCompleted = true,
+                CompletedAt = completedAt,
+                Grade = grade,
+                AdminNotes = adminNotes,
+                CompletedByAdminId = completedByAdminId,
                 UpdatedAt = DateTime.UtcNow
             });
     }

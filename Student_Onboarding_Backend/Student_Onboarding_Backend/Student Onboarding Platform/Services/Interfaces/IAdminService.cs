@@ -17,4 +17,6 @@ public interface IAdminService
     Task<ApiResponse<string>> UploadProfilePhotoAsync(Guid adminId, IFormFile photo);
     Task<ApiResponse<string>> CreateUserAsync(CreateUserRequest request);
     Task<ApiResponse<string>> ChangeUserPasswordAsync(Guid userId, AdminChangePasswordRequest request);
+    Task<ApiResponse<CompletionResponseDto>> MarkCourseCompleteAsync(UpdateCompletionRequest request, Guid adminId);
+    Task<ApiResponse<PaginatedResponse<IncompleteRegistrationDto>>> GetIncompleteRegistrationsByCourseAsync(Guid courseId, int page, int pageSize);
 }

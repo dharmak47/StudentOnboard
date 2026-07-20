@@ -154,6 +154,14 @@ public class UserRepository : IUserRepository
             new { Role = "Admin", IsDeleted = false, IsActive = true });
     }
 
+    public async Task<IEnumerable<User>> GetAllAsync()
+    {
+        using var conn = _db.CreateConnection();
+        return await conn.QueryAsync<User>(
+            "SELECT * FROM Users WHERE IsDeleted = @IsDeleted",
+            new { IsDeleted = false });
+    }
+
     public async Task UpdateProfileAsync(Guid userId, string firstName, string lastName, string? phoneNumber,
         DateTime? dateOfBirth, string? address, string? education)
     {

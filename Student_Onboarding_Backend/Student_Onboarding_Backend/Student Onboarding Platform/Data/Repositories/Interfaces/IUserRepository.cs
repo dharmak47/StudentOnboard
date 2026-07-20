@@ -15,6 +15,7 @@ public interface IUserRepository
     Task<IEnumerable<User>> GetStudentsAsync(int offset, int pageSize, string? approvalStatus, string? search);
     Task<int> GetStudentsCountAsync(string? approvalStatus, string? search);
     Task<IEnumerable<User>> GetAdminUsersAsync();
+    Task<IEnumerable<User>> GetAllAsync();
     Task UpdateProfileAsync(Guid userId, string firstName, string lastName, string? phoneNumber,
         DateTime? dateOfBirth, string? address, string? education);
     Task UpdateProfilePhotoAsync(Guid userId, string photoUrl);

@@ -273,6 +273,16 @@ const mapStudent = (s) => ({
   status: s.approvalStatus?.toLowerCase() === "denied" ? "blocked" : (s.approvalStatus || "pending").toLowerCase(),
   enrolledAt: s.createdAt ? new Date(s.createdAt).toLocaleDateString() : "—",
   course: s.registeredCourses?.[0]?.courseName || "—",
+  courseStatus: s.registeredCourses?.[0]?.status || "—",
+  registrationId: s.registeredCourses?.[0]?.id,
+  registeredCourses: (s.registeredCourses || []).map(rc => ({
+    id: rc.id,
+    courseName: rc.courseName,
+    status: rc.status,
+    isCompleted: rc.isCompleted,
+    progressPercentage: rc.progressPercentage || 0,
+    completedAt: rc.completedAt,
+  })),
   city: s.address || "—",
   degree: s.education || "—",
   isActive: s.isActive,
@@ -471,4 +481,13 @@ export const enquiriesApi = {
     return { data: res.data || [] };
   },
   resolve: (id) => patch(`/api/Enquiries/${id}/resolve`),
+};
+
+// ── Admin API (generic admin request helper) ───────────────────────
+export const adminApi = {
+  get,
+  post,
+  put,
+  patch,
+  del,
 };
