@@ -1,0 +1,67 @@
+.progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.progress-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.progress-bar-wrapper {
+  width: 100%;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar-fill {
+  background: linear-gradient(90deg, #4CAF50, #45a049);
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.progress-milestones {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: stretch;
+  pointer-events: none;
+}
+
+.milestone {
+  position: absolute;
+  width: 2px;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.progress-percentage {
+  font-size: 13px;
+  color: #666;
+  text-align: right;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .progress-container {
+    gap: 8px;
+  }
+
+  .progress-label {
+    font-size: 13px;
+  }
+
+  .progress-percentage {
+    font-size: 12px;
+  }
+}

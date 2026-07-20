@@ -22,3 +22,11 @@ CREATE TABLE Users (
     UpdatedAt DATETIME2,
     LastLoginAt DATETIME2
 );
+
+
+ALTER TABLE [Users] 
+ALTER COLUMN [ApprovalStatus] VARCHAR(20) NULL;
+
+-- Add default constraint for new users
+ALTER TABLE [Users] 
+ADD CONSTRAINT DF_Users_ApprovalStatus DEFAULT ('Pending') FOR [ApprovalStatus];

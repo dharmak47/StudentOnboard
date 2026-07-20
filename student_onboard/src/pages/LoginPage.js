@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { enquiriesApi } from "../services/api";
 
-export default function LoginPage() {
+export default function LoginPage({ onSignup }) {
   const { login, loading, error } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
   const [show, setShow] = useState(false);
@@ -47,11 +47,10 @@ export default function LoginPage() {
             <span style={{ fontSize: 28, fontFamily: "var(--font-display)", fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" }}>SO</span>
           </div>
           <h1 style={{ fontFamily: "var(--font-display)", fontSize: "2.8rem", fontWeight: 800, color: "#1A1A3E", lineHeight: 1.15, marginBottom: 18 }}>
-            Student Onboarding<br />
-            <span style={{ color: "#5B5BD6" }}>Admin Portal</span>
+            <span style={{ color: "#5B5BD6" }}>Learning Portal</span>
           </h1>
           <p style={{ color: "#5A5A82", fontSize: "1.05rem", lineHeight: 1.7, maxWidth: 380 }}>
-            Manage student registrations, approve enrollments, and keep your courses running seamlessly.
+            Access your courses, manage your education, and track your progress.
           </p>
           <div style={{ display: "flex", gap: 24, marginTop: 40 }}>
             {[["👨‍🎓", "Students"], ["📚", "Courses"], ["📊", "Analytics"]].map(([icon, label]) => (
@@ -67,7 +66,7 @@ export default function LoginPage() {
       <div style={{ width: 480, display: "flex", alignItems: "center", justifyContent: "center", padding: 40, background: "rgba(255,255,255,0.55)", backdropFilter: "blur(20px)", borderLeft: "1px solid rgba(255,255,255,0.6)" }}>
         <div className="animate-fadeUp" style={{ width: "100%", maxWidth: 380 }}>
           <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.7rem", fontWeight: 800, color: "#1A1A3E", marginBottom: 6 }}>Welcome back</h2>
-          <p style={{ color: "#9898B8", fontSize: "0.9rem", marginBottom: 32 }}>Sign in to your admin account</p>
+          <p style={{ color: "#9898B8", fontSize: "0.9rem", marginBottom: 32 }}>Sign in to your account</p>
 
           {/* Error from C# backend */}
           {error && (
@@ -80,7 +79,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             <div>
               <label className="label">Email Address</label>
-              <input className="input-field" type="email" placeholder="admin@institute.com"
+              <input className="input-field" type="email" placeholder="Enter your email address"
                 value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
             </div>
             <div>
@@ -111,11 +110,19 @@ export default function LoginPage() {
             </button>
           </form>
 
+          {/* Signup link */}
+          <div style={{ marginTop: 20, textAlign: "center", fontSize: "0.9rem", color: "#5A5A82" }}>
+            Don't have an account?{" "}
+            <span onClick={onSignup} style={{ color: "var(--primary)", cursor: "pointer", fontWeight: 600, fontFamily: "var(--font-display)" }}>
+              Sign Up
+            </span>
+          </div>
+
           {/* Enquire Now Link */}
-          <div style={{ marginTop: 20, textAlign: "center" }}>
+          <div style={{ marginTop: 12, textAlign: "center" }}>
             <p style={{ fontSize: "0.9rem", color: "#5A5A82" }}>
               Prospective Student?{" "}
-              <button 
+              <button
                 onClick={() => setShowEnquiry(true)}
                 style={{ background: "none", border: "none", color: "var(--primary)", fontWeight: "bold", cursor: "pointer", fontSize: "0.9rem", textDecoration: "underline" }}>
                 Enquire Now
@@ -132,7 +139,7 @@ export default function LoginPage() {
               🔗 Connected to C# ASP.NET Core API
             </p>
             <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", fontFamily: "var(--font-body)", marginTop: 4 }}>
-              {process.env.REACT_APP_API_URL || "https://student-onboarding-api.onrender.com/api"}
+              {process.env.REACT_APP_API_URL || "http://localhost:10000"}
             </p>
           </div>
         </div>

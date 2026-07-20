@@ -3,6 +3,7 @@ using Student_Onboarding_Platform.Data.Repositories.Interfaces;
 using Student_Onboarding_Platform.Models.DTOs.Admin;
 using Student_Onboarding_Platform.Models.DTOs.Common;
 using Student_Onboarding_Platform.Models.DTOs.Student;
+using Student_Onboarding_Platform.Models.Entities;
 using Student_Onboarding_Platform.Models.Enums;
 using Student_Onboarding_Platform.Services.Interfaces;
 
@@ -17,6 +18,8 @@ public class AdminService : IAdminService
     private readonly INotificationService _notificationService;
     private readonly ISessionService _sessionService;
     private readonly IFileStorageService _fileStorage;
+    private readonly IPasswordHasher _passwordHasher;
+    private readonly IStudentProgressService _progressService;
     private readonly ILogger<AdminService> _logger;
 
     public AdminService(
@@ -27,6 +30,8 @@ public class AdminService : IAdminService
         INotificationService notificationService,
         ISessionService sessionService,
         IFileStorageService fileStorage,
+        IPasswordHasher passwordHasher,
+        IStudentProgressService progressService,
         ILogger<AdminService> logger)
     {
         _userService = userService;
@@ -36,6 +41,8 @@ public class AdminService : IAdminService
         _notificationService = notificationService;
         _sessionService = sessionService;
         _fileStorage = fileStorage;
+        _passwordHasher = passwordHasher;
+        _progressService = progressService;
         _logger = logger;
     }
 
@@ -67,28 +74,91 @@ public class AdminService : IAdminService
         var students = await _userService.GetStudentsAsync(offset, pageSize, status, search);
         var totalCount = await _userService.GetStudentsCountAsync(status, search);
 
-        var items = students.Select(s => new StudentListResponse
-        {
-            Id = s.Id,
-            FirstName = s.FirstName,
-            LastName = s.LastName,
-            Email = s.Email,
-            PhoneNumber = s.PhoneNumber,
-            ApprovalStatus = s.ApprovalStatus,
-            EmailVerified = s.EmailVerified,
-            IsActive = s.IsActive,
-            CreatedAt = s.CreatedAt
-        }).ToList();
+        var items = new List<StudentListResponse>();
 
-        var response = new PaginatedResponse<StudentListResponse>
+        foreach (var s in students)
+        {
+            var registrations = (await _registrationRepository.GetByUserIdAsync(s.Id)).ToList();
+            var courses = new List<StudentCourseResponse>();
+
+            _logger.LogInformation($"Fetching courses for student {s.Id}: Found {registrations.Count} registrations");
+
+            foreach (var reg in registrations)
+            {
+                try
+                {
+                    var course = await _courseRepository.GetByIdAsync(reg.CourseId);
+                    if (course != null)
+                    {
+                        // Fetch progress data for this registration
+                        CourseProgressDto progressData = null;
+                        try
+                        {
+                            var progressResult = await _progressService.GetProgressAsync(reg.Id);
+                            progressData = progressResult.Data;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning($"Error fetching progress for registration {reg.Id}: {ex.Message}");
+                            // Continue without progress data
+                        }
+
+                        var courseResponse = new StudentCourseResponse
+                        {
+                            RegistrationId = reg.Id,
+                            CourseId = course.Id,
+                            CourseName = course.Name,
+                            CourseDescription = course.Description,
+                            CourseFees = course.Fees,
+                            CourseOfferPrice = course.OfferPrice,
+                            Duration = course.Duration,
+                            PaymentStatus = reg.PaymentStatus,
+                            PaymentAmount = reg.PaymentAmount,
+                            RegisteredAt = reg.CreatedAt,
+                            // Progress data
+                            Status = progressData?.IsCompleted == true ? "Completed" : (reg.PaymentStatus == "Paid" ? "Active" : "Pending"),
+                            ProgressPercentage = progressData?.ProgressPercentage ?? 0,
+                            CompletedModules = progressData?.CompletedModules ?? 0,
+                            TotalModules = progressData?.TotalModules ?? 0,
+                            ExpectedCompletionDate = progressData?.ExpectedCompletionDate,
+                            DaysRemaining = progressData?.DaysRemaining ?? 0,
+                            IsCompleted = progressData?.IsCompleted ?? false
+                        };
+
+                        courses.Add(courseResponse);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error processing registration {reg.Id} for student {s.Id}: {ex.Message}");
+                    // Continue to next registration
+                }
+            }
+
+            var item = new StudentListResponse
+            {
+                Id = s.Id,
+                FirstName = s.FirstName,
+                LastName = s.LastName,
+                Email = s.Email,
+                PhoneNumber = s.PhoneNumber,
+                ApprovalStatus = s.ApprovalStatus,
+                EmailVerified = s.EmailVerified,
+                IsActive = s.IsActive,
+                CreatedAt = s.CreatedAt,
+                RegisteredCourses = courses
+            };
+
+            items.Add(item);
+        }
+
+        return ApiResponse<PaginatedResponse<StudentListResponse>>.Ok(new PaginatedResponse<StudentListResponse>
         {
             Items = items,
             TotalCount = totalCount,
             Page = page,
             PageSize = pageSize
-        };
-
-        return ApiResponse<PaginatedResponse<StudentListResponse>>.Ok(response);
+        });
     }
 
     public async Task<ApiResponse<StudentDetailResponse>> GetStudentByIdAsync(Guid studentId)
@@ -105,6 +175,10 @@ public class AdminService : IAdminService
             var course = await _courseRepository.GetByIdAsync(reg.CourseId);
             if (course != null)
             {
+                // Fetch progress data for this registration
+                var progressResult = await _progressService.GetProgressAsync(reg.Id);
+                var progressData = progressResult.Data;
+
                 courses.Add(new StudentCourseResponse
                 {
                     RegistrationId = reg.Id,
@@ -116,7 +190,15 @@ public class AdminService : IAdminService
                     Duration = course.Duration,
                     PaymentStatus = reg.PaymentStatus,
                     PaymentAmount = reg.PaymentAmount,
-                    RegisteredAt = reg.CreatedAt
+                    RegisteredAt = reg.CreatedAt,
+                    // Progress data
+                    Status = progressData?.IsCompleted == true ? "Completed" : (reg.PaymentStatus == "Paid" ? "Active" : "Pending"),
+                    ProgressPercentage = progressData?.ProgressPercentage ?? 0,
+                    CompletedModules = progressData?.CompletedModules ?? 0,
+                    TotalModules = progressData?.TotalModules ?? 0,
+                    ExpectedCompletionDate = progressData?.ExpectedCompletionDate,
+                    DaysRemaining = progressData?.DaysRemaining ?? 0,
+                    IsCompleted = progressData?.IsCompleted ?? false
                 });
             }
         }
@@ -172,7 +254,7 @@ public class AdminService : IAdminService
 
         await _userService.UpdateApprovalStatusAsync(studentId, nameof(ApprovalStatus.Approved), adminId, null);
 
-        await _emailService.SendApprovalEmailAsync(student.Email, student.FirstName);
+        // await _emailService.SendApprovalEmailAsync(student.Email, student.FirstName);
 
         await _notificationService.CreateStudentNotificationAsync(
             studentId,
@@ -201,7 +283,7 @@ public class AdminService : IAdminService
         await _sessionService.RevokeAllUserSessionsAsync(studentId);
         _logger.LogInformation("All sessions revoked for denied student {StudentId}", studentId);
 
-        await _emailService.SendDenialEmailAsync(student.Email, student.FirstName, request.Reason);
+        // await _emailService.SendDenialEmailAsync(student.Email, student.FirstName, request.Reason);
 
         await _notificationService.CreateStudentNotificationAsync(
             studentId,
@@ -306,5 +388,189 @@ public class AdminService : IAdminService
 
         _logger.LogInformation("Profile photo uploaded for admin {AdminId}", adminId);
         return ApiResponse<string>.Ok(photoUrl, "Profile photo uploaded successfully.");
+    }
+
+    public async Task<ApiResponse<string>> CreateUserAsync(CreateUserRequest request)
+    {
+        _logger.LogInformation("Admin creating new user: {Email} with role {Role}", request.Email, request.Role);
+
+        var existingUser = await _userService.GetByEmailAsync(request.Email);
+        if (existingUser != null)
+        {
+            _logger.LogWarning("User creation failed: email {Email} already exists", request.Email);
+            return ApiResponse<string>.Fail("An account with this email already exists.");
+        }
+
+        if (!string.IsNullOrEmpty(request.PhoneNumber))
+        {
+            var existingPhone = await _userService.GetByPhoneNumberAsync(request.PhoneNumber);
+            if (existingPhone != null)
+            {
+                _logger.LogWarning("User creation failed: phone {Phone} already exists", request.PhoneNumber);
+                return ApiResponse<string>.Fail("An account with this phone number already exists.");
+            }
+        }
+
+        var user = new User
+        {
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Email = request.Email.ToLowerInvariant(),
+            PhoneNumber = request.PhoneNumber,
+            PasswordHash = _passwordHasher.Hash(request.Password),
+            EmailVerified = true,
+            PhoneVerified = false,
+            IsActive = true,
+            IsDeleted = false,
+            Role = request.Role,
+            ApprovalStatus = nameof(ApprovalStatus.Approved)
+        };
+
+        await _userService.CreateAsync(user);
+        _logger.LogInformation("User created successfully: {UserId} ({Email}) with role {Role}", user.Id, user.Email, user.Role);
+
+        return ApiResponse<string>.Ok($"User {user.Email} created successfully with role {user.Role}.");
+    }
+
+    public async Task<ApiResponse<string>> ChangeUserPasswordAsync(Guid userId, AdminChangePasswordRequest request)
+    {
+        _logger.LogInformation("Admin changing password for user {UserId}", userId);
+
+        var user = await _userService.GetByIdAsync(userId);
+        if (user == null)
+        {
+            _logger.LogWarning("Password change failed: user {UserId} not found", userId);
+            return ApiResponse<string>.Fail("User not found.");
+        }
+
+        var newPasswordHash = _passwordHasher.Hash(request.NewPassword);
+        await _userService.UpdatePasswordAsync(userId, newPasswordHash);
+
+        await _sessionService.RevokeAllUserSessionsAsync(userId);
+        _logger.LogInformation("All sessions revoked for user {UserId} — password changed", userId);
+
+        return ApiResponse<string>.Ok("Password changed successfully. User will need to log in again.");
+    }
+
+    public async Task<ApiResponse<CompletionResponseDto>> MarkCourseCompleteAsync(UpdateCompletionRequest request, Guid adminId)
+    {
+        _logger.LogInformation("Admin {AdminId} marking course registration {RegistrationId} as complete", adminId, request.RegistrationId);
+
+        var registration = await _registrationRepository.GetByIdAsync(request.RegistrationId);
+        if (registration == null)
+        {
+            _logger.LogWarning("Course registration {RegistrationId} not found", request.RegistrationId);
+            return ApiResponse<CompletionResponseDto>.Fail("Course registration not found.");
+        }
+
+        if (registration.IsCompleted)
+        {
+            _logger.LogWarning("Course registration {RegistrationId} is already completed", request.RegistrationId);
+            return ApiResponse<CompletionResponseDto>.Fail("This course is already marked as completed.");
+        }
+
+        var completionDate = request.CompletionDate ?? DateTime.UtcNow;
+
+        // Update completion status
+        await _registrationRepository.UpdateCompletionAsync(
+            registration.Id,
+            completionDate,
+            request.Grade,
+            request.AdminNotes,
+            adminId);
+
+        // Get updated registration
+        var updatedRegistration = await _registrationRepository.GetByIdAsync(registration.Id);
+
+        // Get student and course info
+        var student = await _userService.GetByIdAsync(registration.UserId);
+        var course = await _courseRepository.GetByIdAsync(registration.CourseId);
+
+        var response = new CompletionResponseDto
+        {
+            RegistrationId = registration.Id,
+            UserId = registration.UserId,
+            StudentName = student != null ? $"{student.FirstName} {student.LastName}" : "Unknown",
+            StudentEmail = student?.Email ?? "Unknown",
+            CourseId = registration.CourseId,
+            CourseName = course?.Name ?? "Unknown",
+            IsCompleted = true,
+            CompletedAt = completionDate,
+            Grade = request.Grade,
+            AdminNotes = request.AdminNotes,
+            CompletedByAdminId = adminId,
+            ProgressPercentage = registration.ProgressPercentage,
+            EnrolledDate = registration.CreatedAt,
+            ExpectedCompletionDate = registration.ExpectedCompletionDate
+        };
+
+        _logger.LogInformation("Successfully marked course registration {RegistrationId} as complete", registration.Id);
+
+        // Send notification to student
+        try
+        {
+            await _notificationService.CreateStudentNotificationAsync(
+                registration.UserId,
+                "CourseCompletion",
+                "Course Completed",
+                $"Your course '{course?.Name}' has been marked as complete by an administrator.",
+                registration.Id
+            );
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create completion notification for user {UserId}", registration.UserId);
+        }
+
+        return ApiResponse<CompletionResponseDto>.Ok(response);
+    }
+
+    public async Task<ApiResponse<PaginatedResponse<IncompleteRegistrationDto>>> GetIncompleteRegistrationsByCourseAsync(Guid courseId, int page, int pageSize)
+    {
+        _logger.LogInformation("Fetching incomplete registrations for course {CourseId}, page {Page}, pageSize {PageSize}", courseId, page, pageSize);
+
+        var course = await _courseRepository.GetByIdAsync(courseId);
+        if (course == null)
+        {
+            _logger.LogWarning("Course {CourseId} not found", courseId);
+            return ApiResponse<PaginatedResponse<IncompleteRegistrationDto>>.Fail("Course not found.");
+        }
+
+        var offset = (page - 1) * pageSize;
+        var registrations = (await _registrationRepository.GetIncompleteRegistrationsByCourseAsync(courseId, offset, pageSize)).ToList();
+        var totalCount = await _registrationRepository.GetIncompleteCountByCourseAsync(courseId);
+
+        var items = new List<IncompleteRegistrationDto>();
+
+        foreach (var reg in registrations)
+        {
+            var student = await _userService.GetByIdAsync(reg.UserId);
+
+            items.Add(new IncompleteRegistrationDto
+            {
+                RegistrationId = reg.Id,
+                UserId = reg.UserId,
+                StudentName = student != null ? $"{student.FirstName} {student.LastName}" : "Unknown",
+                StudentEmail = student?.Email ?? "Unknown",
+                CourseId = courseId,
+                CourseName = course.Name,
+                ProgressPercentage = reg.ProgressPercentage,
+                EnrolledDate = reg.CreatedAt,
+                ExpectedCompletionDate = reg.ExpectedCompletionDate,
+                IsAtRisk = reg.ProgressPercentage < 30,
+                PaymentStatus = reg.PaymentStatus,
+                CompletedModules = reg.CompletedModules > 0 ? new List<string> { $"{reg.CompletedModules}/{reg.TotalModules} modules" } : new List<string>()
+            });
+        }
+
+        var response = new PaginatedResponse<IncompleteRegistrationDto>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
+
+        return ApiResponse<PaginatedResponse<IncompleteRegistrationDto>>.Ok(response);
     }
 }

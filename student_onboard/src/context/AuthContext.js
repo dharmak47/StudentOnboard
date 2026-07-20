@@ -17,13 +17,14 @@ const mapUser = (user) => ({
   name:   `${user.firstName} ${user.lastName}`.trim(),
   email:  user.email,
   role:   user.role,
+  approvalStatus: user.approvalStatus ?? "Pending",
   avatar: `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase(),
   profilePic: user.profilePhotoUrl || null,
 });
 
 export function AuthProvider({ children }) {
-  const [admin, setAdmin] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("edu_admin")) || null; }
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("edu_user")) || null; }
     catch { return null; }
   });
   const [loading, setLoading] = useState(false);
@@ -48,13 +49,13 @@ export function AuthProvider({ children }) {
       // Store tokens (including expiresAt for proactive refresh)
       tokenHelper.setTokens(data.accessToken, data.refreshToken, data.expiresAt);
 
-      // Map C# UserDto → our admin object
-      const adminObj = mapUser(data.user);
-      localStorage.setItem("edu_admin", JSON.stringify(adminObj));
-      if (adminObj.profilePic) {
-        localStorage.setItem("edu_admin_pic", adminObj.profilePic);
+      // Map C# UserDto → our user object
+      const userObj = mapUser(data.user);
+      localStorage.setItem("edu_user", JSON.stringify(userObj));
+      if (userObj.profilePic) {
+        localStorage.setItem("edu_user_pic", userObj.profilePic);
       }
-      setAdmin(adminObj);
+      setUser(userObj);
       return true;
 
     } catch (err) {
@@ -76,18 +77,104 @@ export function AuthProvider({ children }) {
       // Even if API call fails, clear local state
     } finally {
       tokenHelper.clearTokens();
-      setAdmin(null);
+      setUser(null);
     }
   }, []);
 
+  // ── Signup ───────────────────────────────────────────────────────────────
+  // Calls POST /api/Auth/signup
+  // On success: returns tokens and logs in user immediately
+  const signup = useCallback(async ({ firstName, lastName, email, phoneNumber, password, confirmPassword }) => {
+    setLoading(true); setError(null);
+    try {
+      const res = await authApi.signup(firstName, lastName, email, phoneNumber, password, confirmPassword);
+      const data = res.data || res;
+
+      if (!data.accessToken) {
+        throw new Error("Invalid response from server.");
+      }
+
+      // Store tokens
+      tokenHelper.setTokens(data.accessToken, data.refreshToken, data.expiresAt);
+
+      // Map C# UserDto → our user object and store
+      const userObj = mapUser(data.user);
+      localStorage.setItem("edu_user", JSON.stringify(userObj));
+      if (userObj.profilePic) {
+        localStorage.setItem("edu_user_pic", userObj.profilePic);
+      }
+      setUser(userObj);
+
+      return { success: true, user: userObj };
+    } catch (err) {
+      setError(err.message || "Signup failed. Please try again.");
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ── Verify OTP ───────────────────────────────────────────────────────────
+  // Calls POST /api/Auth/verify-otp
+  // Does NOT log in user; they must login after verifying email
+  const verifyOtp = useCallback(async (email, otpCode) => {
+    setLoading(true); setError(null);
+    try {
+      await authApi.verifyOtp(email, otpCode, "EmailVerification");
+      setError(null);
+      return { success: true };
+    } catch (err) {
+      setError(err.message || "OTP verification failed. Please try again.");
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ── Resend OTP ───────────────────────────────────────────────────────────
+  const resendOtp = useCallback(async (email) => {
+    setLoading(true); setError(null);
+    try {
+      await authApi.resendOtp(email, "EmailVerification");
+      setError(null);
+      return { success: true };
+    } catch (err) {
+      setError(err.message || "Failed to resend OTP. Please try again.");
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ── Derived booleans ────────────────────────────────────────────────────
+  const isAdmin    = user?.role === "Admin";
+  const isStudent  = user?.role === "Student";
+  const isApproved = user?.approvalStatus === "Approved";
+  const isPending  = user?.approvalStatus === "Pending";
+
+  // ── updateUser: merge partial updates ────────────────────────────────────
+  const updateUser = (partial) => {
+    const updated = { ...user, ...partial };
+    setUser(updated);
+    localStorage.setItem("edu_user", JSON.stringify(updated));
+  };
+
   return (
     <AuthContext.Provider value={{
-      admin,
+      user,
+      isAdmin,
+      isStudent,
+      isApproved,
+      isPending,
       loading,
       error,
       login,
       logout,
-      isAuthenticated: !!admin,
+      signup,
+      verifyOtp,
+      resendOtp,
+      updateUser,
+      isAuthenticated: !!user,
     }}>
       {children}
     </AuthContext.Provider>
