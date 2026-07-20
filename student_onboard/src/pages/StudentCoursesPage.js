@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { publicCoursesApi, studentApi } from "../services/api";
+import { publicCoursesApi, studentApi, invoicesApi } from "../services/api";
 import { useToast } from "../context/ToastContext";
+import InvoicePreviewModal from "../components/invoice/InvoicePreviewModal";
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -28,7 +29,8 @@ export default function StudentCoursesPage({ onNavigate }) {
   const [registrations, setRegistrations] = useState([]);
   const [browsing, setBrowsing] = useState(true);
   const [registering, setRegistering] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [invoicePreview, setInvoicePreview] = useState(null); // { invoice, autoDownload }
+  const [invoiceBusyId, setInvoiceBusyId] = useState(null);
 
   // Fetch both on mount
   useEffect(() => {
@@ -66,6 +68,20 @@ export default function StudentCoursesPage({ onNavigate }) {
 
   const isRegistered = (courseId) => {
     return registrations.some((r) => r.courseId === courseId || r.id === courseId);
+  };
+
+  const handleDownloadInvoice = async (reg) => {
+    const regId = reg.registrationId || reg.id;
+    if (!regId) return;
+    setInvoiceBusyId(regId);
+    try {
+      const res = await invoicesApi.getForRegistration(regId);
+      setInvoicePreview({ invoice: res.data, autoDownload: true });
+    } catch (err) {
+      toast.error(err.message || "Invoice is not available yet.");
+    } finally {
+      setInvoiceBusyId(null);
+    }
   };
 
   return (
@@ -181,6 +197,7 @@ export default function StudentCoursesPage({ onNavigate }) {
                     <th style={{ textAlign: "left", padding: "12px 0", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Fees</th>
                     <th style={{ textAlign: "left", padding: "12px 0", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Payment Status</th>
                     <th style={{ textAlign: "left", padding: "12px 0", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Registered Date</th>
+                    <th style={{ textAlign: "right", padding: "12px 0", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Invoice</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -196,7 +213,25 @@ export default function StudentCoursesPage({ onNavigate }) {
                         <StatusBadge status={reg.paymentStatus} />
                       </td>
                       <td style={{ padding: "12px 0", color: "var(--text-secondary)", fontSize: "0.9rem" }}>
-                        {reg.registeredDate ? new Date(reg.registeredDate).toLocaleDateString() : "—"}
+                        {reg.registeredAt ? new Date(reg.registeredAt).toLocaleDateString()
+                          : reg.registeredDate ? new Date(reg.registeredDate).toLocaleDateString() : "—"}
+                      </td>
+                      <td style={{ padding: "12px 0", textAlign: "right" }}>
+                        {reg.paymentStatus === "Paid" ? (
+                          <button
+                            onClick={() => handleDownloadInvoice(reg)}
+                            disabled={invoiceBusyId === (reg.registrationId || reg.id)}
+                            style={{
+                              background: "var(--primary)", color: "#fff", border: "none",
+                              borderRadius: 8, padding: "7px 12px", cursor: "pointer",
+                              fontSize: "0.78rem", fontWeight: 700,
+                            }}
+                          >
+                            {invoiceBusyId === (reg.registrationId || reg.id) ? "…" : "Download Invoice"}
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Available once paid</span>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -205,6 +240,14 @@ export default function StudentCoursesPage({ onNavigate }) {
             </div>
           )}
         </div>
+      )}
+
+      {invoicePreview && (
+        <InvoicePreviewModal
+          invoice={invoicePreview.invoice}
+          autoDownload={invoicePreview.autoDownload}
+          onClose={() => setInvoicePreview(null)}
+        />
       )}
     </div>
   );

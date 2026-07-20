@@ -23,6 +23,7 @@ namespace StudentOnboarding.Tests
         private readonly Mock<INotificationService>            _notificationServiceMock;
         private readonly Mock<ISessionService>                 _sessionServiceMock;
         private readonly Mock<IFileStorageService>             _fileStorageMock;
+        private readonly Mock<IInvoiceService>                 _invoiceServiceMock;
         private readonly Mock<ILogger<AdminService>>           _loggerMock;
         private readonly AdminService                          _adminService;
 
@@ -35,6 +36,7 @@ namespace StudentOnboarding.Tests
             _notificationServiceMock = new Mock<INotificationService>();
             _sessionServiceMock      = new Mock<ISessionService>();
             _fileStorageMock         = new Mock<IFileStorageService>();
+            _invoiceServiceMock      = new Mock<IInvoiceService>();
             _loggerMock              = new Mock<ILogger<AdminService>>();
 
             _adminService = new AdminService(
@@ -45,6 +47,7 @@ namespace StudentOnboarding.Tests
                 _notificationServiceMock.Object,
                 _sessionServiceMock.Object,
                 _fileStorageMock.Object,
+                _invoiceServiceMock.Object,
                 _loggerMock.Object
             );
         }

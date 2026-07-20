@@ -11,7 +11,6 @@ CREATE TABLE IF NOT EXISTS UserSocialLogins (
     ProviderUserId VARCHAR(255) NOT NULL,
     Email VARCHAR(255),
     CreatedAt TIMESTAMP DEFAULT NOW(),
-
     CONSTRAINT fk_social_user
         FOREIGN KEY (UserId) REFERENCES Users(Id)
 );

@@ -463,6 +463,56 @@ export const analyticsApi = {
   },
 };
 
+// ── Invoices API ──────────────────────────────────────────────────────────
+// Student endpoints are read-only; admin endpoints allow editing + org settings.
+export const invoicesApi = {
+  // Student (read-only)
+  listMine: async () => {
+    const res = await get("/api/Student/courses/invoices");
+    return { data: res.data || [] };
+  },
+  getMine: async (id) => {
+    const res = await get(`/api/Student/courses/invoices/${id}`);
+    return { data: res.data };
+  },
+  getForRegistration: async (registrationId) => {
+    const res = await get(`/api/Student/courses/registrations/${registrationId}/invoice`);
+    return { data: res.data };
+  },
+
+  // Admin
+  list: async (params = {}) => {
+    const qp = new URLSearchParams();
+    qp.set("page", params.page || 1);
+    qp.set("pageSize", params.pageSize || 50);
+    const res = await get(`/api/Admin/invoices?${qp}`);
+    const pg = res.data || {};
+    return { data: pg.items || [], total: pg.totalCount, page: pg.page, pages: pg.totalPages };
+  },
+  getById: async (id) => {
+    const res = await get(`/api/Admin/invoices/${id}`);
+    return { data: res.data };
+  },
+  update: async (id, payload) => {
+    const res = await put(`/api/Admin/invoices/${id}`, payload);
+    return { data: res.data };
+  },
+  getForRegistrationAdmin: async (registrationId) => {
+    const res = await get(`/api/Admin/registrations/${registrationId}/invoice`);
+    return { data: res.data };
+  },
+
+  // Organization settings (admin)
+  getOrgSettings: async () => {
+    const res = await get("/api/Admin/organization-settings");
+    return { data: res.data };
+  },
+  updateOrgSettings: async (payload) => {
+    const res = await put("/api/Admin/organization-settings", payload);
+    return { data: res.data };
+  },
+};
+
 // ── Enquiries API ────────────────────────────────────────────────────────
 export const enquiriesApi = {
   submit: (payload) => post("/api/Enquiries", payload, true), // Public

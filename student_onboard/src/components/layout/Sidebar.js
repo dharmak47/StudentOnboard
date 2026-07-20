@@ -9,6 +9,7 @@ const ADMIN_NAV = [
   { id: "students",       icon: "◎",  label: "Students"       },
   { id: "registrations",  icon: "▤",  label: "Registrations"  },
   { id: "courses",        icon: "◈",  label: "Courses"        },
+  { id: "invoices",       icon: "🧾", label: "Invoices"       },
   { id: "notifications",  icon: <FiBell size={16} />, label: "Notifications"  },
   { id: "faqs",           icon: "?",  label: "FAQs"           },
   { id: "enquiries",      icon: <FiMail size={16} />, label: "Enquiries"      },
@@ -17,6 +18,7 @@ const ADMIN_NAV = [
 const STUDENT_NAV = [
   { id: "dashboard",      icon: "▦",  label: "Dashboard"      },
   { id: "courses",        icon: "◈",  label: "Courses"        },
+  { id: "invoices",       icon: "🧾", label: "Payment History" },
   { id: "notifications",  icon: <FiBell size={16} />, label: "Notifications"  },
   { id: "profile",        icon: "◎",  label: "My Profile"     },
 ];

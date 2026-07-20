@@ -14,9 +14,11 @@ import CoursesPage        from "./pages/CoursesPage";
 import EnquiriesPage from "./pages/EnquiriesPage";
 import NotificationsPage  from "./pages/NotificationsPage";
 import FaqsPage           from "./pages/FaqsPage";
+import InvoicesPage       from "./pages/InvoicesPage";
 import SettingsPage       from "./pages/SettingsPage";
 import StudentDashboardPage      from "./pages/StudentDashboardPage";
 import StudentCoursesPage        from "./pages/StudentCoursesPage";
+import StudentInvoicesPage       from "./pages/StudentInvoicesPage";
 import StudentProfilePage        from "./pages/StudentProfilePage";
 import StudentNotificationsPage  from "./pages/StudentNotificationsPage";
 import ApprovalPendingPage       from "./pages/ApprovalPendingPage";
@@ -29,6 +31,7 @@ const ADMIN_PAGES = {
   registrations:  RegistrationsPage,
   courses:        CoursesPage,
   enquiries:     EnquiriesPage,
+  invoices:       InvoicesPage,
   notifications:  NotificationsPage,
   faqs:           FaqsPage,
   settings:       SettingsPage,
@@ -37,6 +40,7 @@ const ADMIN_PAGES = {
 const STUDENT_PAGES = {
   dashboard:      StudentDashboardPage,
   courses:        StudentCoursesPage,
+  invoices:       StudentInvoicesPage,
   notifications:  StudentNotificationsPage,
   profile:        StudentProfilePage,
 };
@@ -86,7 +90,6 @@ function AppShell() {
   if (isStudent && isPending) return <ApprovalPendingPage />;
 
   const PAGES = isAdmin ? ADMIN_PAGES : STUDENT_PAGES;
-  const defaultPage = isAdmin ? "dashboard" : "dashboard";
   const PageComponent = PAGES[page] || (isAdmin ? DashboardPage : StudentDashboardPage);
 
   return (

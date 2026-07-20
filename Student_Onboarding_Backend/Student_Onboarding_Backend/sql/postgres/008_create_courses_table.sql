@@ -17,7 +17,6 @@ CREATE TABLE IF NOT EXISTS Courses (
     CreatedBy UUID NOT NULL,
     CreatedAt TIMESTAMP DEFAULT NOW(),
     UpdatedAt TIMESTAMP,
-
     CONSTRAINT fk_courses_createdby
         FOREIGN KEY (CreatedBy) REFERENCES Users(Id)
 );

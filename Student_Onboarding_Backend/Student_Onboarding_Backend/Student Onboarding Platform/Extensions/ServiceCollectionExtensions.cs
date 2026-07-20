@@ -36,6 +36,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<ICourseReviewRepository, CourseReviewRepository>();
         services.AddScoped<IFaqRepository, FaqRepository>();
+        services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+        services.AddScoped<IOrganizationSettingsRepository, OrganizationSettingsRepository>();
 
         // Services
         services.AddScoped<IAuthService, AuthService>();
@@ -55,6 +57,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient("Bytescale");
         services.AddScoped<IFileStorageService, BytescaleStorageService>();
         services.AddScoped<IEnquiryService, EnquiryService>();
+        services.AddScoped<IInvoiceService, InvoiceService>();
 
         // Background services
         services.AddHostedService<BirthdayNotificationService>();
