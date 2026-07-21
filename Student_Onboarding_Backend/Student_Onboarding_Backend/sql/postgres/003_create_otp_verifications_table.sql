@@ -16,7 +16,6 @@ CREATE TABLE IF NOT EXISTS OtpVerifications (
     ExpiresAt TIMESTAMP NOT NULL,
     IsUsed BOOLEAN DEFAULT FALSE,
     CreatedAt TIMESTAMP DEFAULT NOW(),
-
     CONSTRAINT fk_otp_user
         FOREIGN KEY (UserId) REFERENCES Users(Id)
 );

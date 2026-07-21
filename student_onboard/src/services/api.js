@@ -3,7 +3,7 @@
 // Integrated with C# ASP.NET Core backend
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BASE_URL = process.env.REACT_APP_API_URL || "https://student-onboarding-api.onrender.com/api";
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:10000";
 
 // ── Token helpers ─────────────────────────────────────────────────────────
 export const tokenHelper = {
@@ -19,8 +19,8 @@ export const tokenHelper = {
     localStorage.removeItem("edu_access_token");
     localStorage.removeItem("edu_refresh_token");
     localStorage.removeItem("edu_token_expires");
-    localStorage.removeItem("edu_admin");
-    localStorage.removeItem("edu_admin_pic");
+    localStorage.removeItem("edu_user");
+    localStorage.removeItem("edu_user_pic");
   },
 };
 
@@ -37,7 +37,7 @@ async function refreshAccessToken() {
   const refreshToken = tokenHelper.getRefresh();
   if (!refreshToken) throw new Error("No refresh token.");
 
-  const res = await fetch(`${BASE_URL}/Auth/refresh-token`, {
+  const res = await fetch(`${BASE_URL}/api/Auth/refresh-token`, {
     method:  "POST",
     headers: { "Content-Type": "application/json" },
     body:    JSON.stringify({ refreshToken }),
@@ -188,7 +188,7 @@ async function request(method, path, body, isPublic = false) {
   return data;
 }
 
-const get   = (path)              => request("GET",    path);
+const get   = (path, isPublic)    => request("GET",    path, null, isPublic);
 const post  = (path, body, pub)   => request("POST",   path, body, pub);
 const put   = (path, body)        => request("PUT",    path, body);
 const patch = (path, body)        => request("PATCH",  path, body);
@@ -219,32 +219,47 @@ async function uploadFile(path, file, fieldName = "photo") {
 }
 
 // ── Auth API ──────────────────────────────────────────────────────────────
-// C# endpoint: POST /api/Auth/login
-// Request:  { email, password, deviceType, deviceName }
+// C# endpoints: POST /api/Auth/signup, login, verify-otp, etc.
 // Response: { accessToken, refreshToken, expiresAt, user: { id, firstName, lastName, email, role } }
 export const authApi = {
+  signup: (firstName, lastName, email, phoneNumber, password, confirmPassword) =>
+    post("/api/Auth/signup", {
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      password,
+      confirmPassword,
+    }, true), // true = public route, no token needed
+
+  verifyOtp: (email, otpCode, otpType = "EmailVerification") =>
+    post("/api/Auth/verify-otp", { email, otpCode, otpType }, true),
+
+  resendOtp: (email, otpType = "EmailVerification") =>
+    post("/api/Auth/resend-otp", { email, otpType }, true),
+
   login: (email, password) =>
-    post("/Auth/login", {
+    post("/api/Auth/login", {
       email,
       password,
       deviceType: "Web",
-      deviceName: "Admin Panel",
+      deviceName: "Web Portal",
     }, true), // true = public route, no token needed
 
   logout: (refreshToken) =>
-    post("/Auth/logout", { refreshToken }),
+    post("/api/Auth/logout", { refreshToken }),
 
   refreshToken: (refreshToken) =>
-    post("/Auth/refresh-token", { refreshToken }, true),
+    post("/api/Auth/refresh-token", { refreshToken }, true),
 
   changePassword: (currentPassword, newPassword, confirmPassword) =>
-    post("/Auth/change-password", { currentPassword, newPassword, confirmPassword }),
+    post("/api/Auth/change-password", { currentPassword, newPassword, confirmPassword }),
 
   forgotPassword: (email) =>
-    post("/Auth/forgot-password", { email }, true),
+    post("/api/Auth/forgot-password", { email }, true),
 
   resetPassword: (email, otp, newPassword, confirmPassword) =>
-    post("/Auth/reset-password", { email, otp, newPassword, confirmPassword }, true),
+    post("/api/Auth/reset-password", { email, otp, newPassword, confirmPassword }, true),
 };
 
 // ── Students API ──────────────────────────────────────────────────────────
@@ -258,6 +273,16 @@ const mapStudent = (s) => ({
   status: s.approvalStatus?.toLowerCase() === "denied" ? "blocked" : (s.approvalStatus || "pending").toLowerCase(),
   enrolledAt: s.createdAt ? new Date(s.createdAt).toLocaleDateString() : "—",
   course: s.registeredCourses?.[0]?.courseName || "—",
+  courseStatus: s.registeredCourses?.[0]?.status || "—",
+  registrationId: s.registeredCourses?.[0]?.id,
+  registeredCourses: (s.registeredCourses || []).map(rc => ({
+    id: rc.id,
+    courseName: rc.courseName,
+    status: rc.status,
+    isCompleted: rc.isCompleted,
+    progressPercentage: rc.progressPercentage || 0,
+    completedAt: rc.completedAt,
+  })),
   city: s.address || "—",
   degree: s.education || "—",
   isActive: s.isActive,
@@ -274,24 +299,30 @@ export const studentsApi = {
       qp.set("status", statusMap[params.status] || params.status.charAt(0).toUpperCase() + params.status.slice(1));
     }
     if (params.search) qp.set("search",   params.search);
-    const res = await get(`/Admin/students?${qp}`);
+    const res = await get(`/api/Admin/students?${qp}`);
     const pg = res.data;
     return { data: (pg.items || []).map(mapStudent), total: pg.totalCount, page: pg.page, pages: pg.totalPages };
   },
   getById: async (id) => {
-    const res = await get(`/Admin/students/${id}`);
+    const res = await get(`/api/Admin/students/${id}`);
     return { data: mapStudent(res.data) };
   },
   updateStatus: async (id, status) => {
     if (status === "approved") {
-      await post(`/Admin/students/${id}/approve`);
+      await post(`/api/Admin/students/${id}/approve`);
     } else {
-      await post(`/Admin/students/${id}/deny`, { reason: "Blocked by admin" });
+      await post(`/api/Admin/students/${id}/deny`, { reason: "Blocked by admin" });
     }
-    const res = await get(`/Admin/students/${id}`);
+    const res = await get(`/api/Admin/students/${id}`);
     return { data: mapStudent(res.data) };
   },
-  stats: () => get("/Admin/students/stats"),
+  stats: () => get("/api/Admin/students/stats"),
+  createUser: async (payload) => {
+    return post("/api/Admin/users", payload);
+  },
+  changePassword: async (id, newPassword) => {
+    return put(`/api/Admin/users/${id}/password`, { newPassword });
+  },
 };
 
 // ── Courses API ───────────────────────────────────────────────────────────
@@ -329,22 +360,22 @@ const unmapCourse = (f) => ({
 
 export const coursesApi = {
   getAll: async (params = {}) => {
-    const res = await get("/Admin/courses");
+    const res = await get("/api/Admin/courses");
     return { data: (res.data || []).map(mapCourse) };
   },
   getById: async (id) => {
-    const res = await get(`/Course/${id}`);
+    const res = await get(`/api/Course/${id}`);
     return { data: mapCourse(res.data) };
   },
   create: async (payload) => {
-    const res = await post("/Admin/courses", unmapCourse(payload));
+    const res = await post("/api/Admin/courses", unmapCourse(payload));
     return { data: mapCourse(res.data) };
   },
   update: async (id, payload) => {
-    const res = await put(`/Admin/courses/${id}`, unmapCourse(payload));
+    const res = await put(`/api/Admin/courses/${id}`, unmapCourse(payload));
     return { data: mapCourse(res.data) };
   },
-  delete: (id) => del(`/Admin/courses/${id}`),
+  delete: (id) => del(`/api/Admin/courses/${id}`),
 };
 
 // ── Course Registrations API ──────────────────────────────────────────────
@@ -354,12 +385,12 @@ export const registrationsApi = {
     const qp = new URLSearchParams();
     if (params.page) qp.set("page", params.page);
     if (params.limit) qp.set("pageSize", params.limit || 50);
-    const res = await get(`/Admin/course-registrations?${qp}`);
+    const res = await get(`/api/Admin/course-registrations?${qp}`);
     const pg = res.data;
     return { data: pg.items || [], total: pg.totalCount, page: pg.page, pages: pg.totalPages };
   },
   updatePayment: async (id, payload) => {
-    const res = await put(`/Admin/course-registrations/${id}/payment`, payload);
+    const res = await put(`/api/Admin/course-registrations/${id}/payment`, payload);
     return res;
   },
   complete: (id) => put(`/Admin/course-registrations/${id}/complete`),
@@ -368,40 +399,68 @@ export const registrationsApi = {
 // ── Notifications API ─────────────────────────────────────────────────────
 // Connected to AdminController: /api/Admin/notifications
 export const notificationsApi = {
-  getAll:       ()   => get("/Admin/notifications"),
-  unreadCount:  ()   => get("/Admin/notifications/unread-count"),
-  markAsRead:   (id) => put(`/Admin/notifications/${id}/read`),
-  send:         (title, message, studentIds) => post("/Admin/notifications/send", { title, message, studentIds: studentIds || null }),
+  getAll:       ()   => get("/api/Admin/notifications"),
+  unreadCount:  ()   => get("/api/Admin/notifications/unread-count"),
+  markAsRead:   (id) => put(`/api/Admin/notifications/${id}/read`),
+  send:         (title, message, studentIds) => post("/api/Admin/notifications/send", { title, message, studentIds: studentIds || null }),
 };
 
 // ── FAQs API ──────────────────────────────────────────────────────────
 // Connected to AdminController: /api/Admin/faqs
 export const faqsApi = {
   getAll: async () => {
-    const res = await get("/Admin/faqs");
+    const res = await get("/api/Admin/faqs");
     return { data: res.data || [] };
   },
   create: async (payload) => {
-    const res = await post("/Admin/faqs", payload);
+    const res = await post("/api/Admin/faqs", payload);
     return { data: res.data };
   },
   update: async (id, payload) => {
-    const res = await put(`/Admin/faqs/${id}`, payload);
+    const res = await put(`/api/Admin/faqs/${id}`, payload);
     return { data: res.data };
   },
-  delete: (id) => del(`/Admin/faqs/${id}`),
+  delete: (id) => del(`/api/Admin/faqs/${id}`),
 };
 
 // ── Admin Profile API ────────────────────────────────────────────────────
 export const adminProfileApi = {
-  uploadPhoto: (file) => uploadFile("/Admin/profile/photo", file, "photo"),
+  uploadPhoto: (file) => uploadFile("/api/Admin/profile/photo", file, "photo"),
+};
+
+// ── Student API ───────────────────────────────────────────────────────────
+export const studentApi = {
+  getProfile:           ()           => get("/api/Student/profile"),
+  updateProfile:        (payload)    => put("/api/Student/profile", payload),
+  uploadPhoto:          (file)       => uploadFile("/api/Student/profile/photo", file, "photo"),
+  getDashboard:         ()           => get("/api/Student/dashboard"),
+  getRegisteredCourses: ()           => get("/api/Student/courses"),
+  registerForCourse:    (courseId)   => post("/api/Student/courses/register", { courseId }),
+  getNotifications:     ()           => get("/api/Student/notifications"),
+  markNotificationRead: (id)         => put(`/api/Student/notifications/${id}/read`),
+  submitReview:         (courseId, rating, remarks) =>
+                                        post(`/api/Student/courses/${courseId}/review`, { rating, remarks }),
+  getCourseReviews:     (courseId)   => get(`/api/Student/courses/${courseId}/reviews`, true),
+  getFaqs:              ()           => get("/api/Student/faqs", true),
+};
+
+// ── Public Courses API ────────────────────────────────────────────────────
+export const publicCoursesApi = {
+  getAll:  async () => {
+    const res = await get("/api/Course", true);
+    return { ...res, data: (res.data || []).map(mapCourse) };
+  },
+  getById: async (id) => {
+    const res = await get(`/api/Course/${id}`, true);
+    return { ...res, data: mapCourse(res.data) };
+  },
 };
 
 //── Analytics API ─────────────────────────────────────────────────────────
 // Uses AdminController dashboard endpoint
 export const analyticsApi = {
   overview: async () => {
-    const res = await get("/Admin/dashboard");
+    const res = await get("/api/Admin/dashboard");
     const d = res.data;
     return {
       data: {
@@ -415,14 +474,73 @@ export const analyticsApi = {
   },
 };
 
-// ── Enquiries API ────────────────────────────────────────────────────────
-export const enquiriesApi = {
-  submit: (payload) => post("/Enquiries", payload, true), // Public
-  getAll: async () => {
-    const res = await get("/Enquiries");
+// ── Invoices API ──────────────────────────────────────────────────────────
+// Student endpoints are read-only; admin endpoints allow editing + org settings.
+export const invoicesApi = {
+  // Student (read-only)
+  listMine: async () => {
+    const res = await get("/api/Student/courses/invoices");
     return { data: res.data || [] };
   },
-  resolve: (id) => patch(`/Enquiries/${id}/resolve`),
+  getMine: async (id) => {
+    const res = await get(`/api/Student/courses/invoices/${id}`);
+    return { data: res.data };
+  },
+  getForRegistration: async (registrationId) => {
+    const res = await get(`/api/Student/courses/registrations/${registrationId}/invoice`);
+    return { data: res.data };
+  },
+
+  // Admin
+  list: async (params = {}) => {
+    const qp = new URLSearchParams();
+    qp.set("page", params.page || 1);
+    qp.set("pageSize", params.pageSize || 50);
+    const res = await get(`/api/Admin/invoices?${qp}`);
+    const pg = res.data || {};
+    return { data: pg.items || [], total: pg.totalCount, page: pg.page, pages: pg.totalPages };
+  },
+  getById: async (id) => {
+    const res = await get(`/api/Admin/invoices/${id}`);
+    return { data: res.data };
+  },
+  update: async (id, payload) => {
+    const res = await put(`/api/Admin/invoices/${id}`, payload);
+    return { data: res.data };
+  },
+  getForRegistrationAdmin: async (registrationId) => {
+    const res = await get(`/api/Admin/registrations/${registrationId}/invoice`);
+    return { data: res.data };
+  },
+
+  // Organization settings (admin)
+  getOrgSettings: async () => {
+    const res = await get("/api/Admin/organization-settings");
+    return { data: res.data };
+  },
+  updateOrgSettings: async (payload) => {
+    const res = await put("/api/Admin/organization-settings", payload);
+    return { data: res.data };
+  },
+};
+
+// ── Enquiries API ────────────────────────────────────────────────────────
+export const enquiriesApi = {
+  submit: (payload) => post("/api/Enquiries", payload, true), // Public
+  getAll: async () => {
+    const res = await get("/api/Enquiries");
+    return { data: res.data || [] };
+  },
+  resolve: (id) => patch(`/api/Enquiries/${id}/resolve`),
+};
+
+// ── Admin API (generic admin request helper) ───────────────────────
+export const adminApi = {
+  get,
+  post,
+  put,
+  patch,
+  del,
 };
 
 // ── Certificates API ─────────────────────────────────────────────────────

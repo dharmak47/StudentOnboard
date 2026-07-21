@@ -1,8 +1,8 @@
 // src/pages/SettingsPage.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
-import { authApi, adminProfileApi } from "../services/api";
+import { authApi, adminProfileApi, invoicesApi } from "../services/api";
 
 function Section({ title, description, children }) {
   return (
@@ -17,10 +17,66 @@ function Section({ title, description, children }) {
 }
 
 export default function SettingsPage() {
-  const { admin } = useAuth();
+  const { user } = useAuth();
   const toast     = useToast();
   const [pwForm, setPwForm]   = useState({ current: "", newPw: "", confirm: "" });
   const [pwLoading, setPwLoading] = useState(false);
+
+  // ── Organization / invoice branding ──────────────────────────────────────
+  const [org, setOrg] = useState(null);
+  const [orgLoading, setOrgLoading] = useState(true);
+  const [orgSaving, setOrgSaving] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await invoicesApi.getOrgSettings();
+        setOrg(res.data || {});
+      } catch (err) {
+        toast.error(err.message || "Failed to load organization settings.");
+        setOrg({});
+      } finally {
+        setOrgLoading(false);
+      }
+    })();
+  }, [toast]);
+
+  const setOrgField = (key, value) => setOrg((o) => ({ ...o, [key]: value }));
+
+  const handleOrgSave = async (e) => {
+    e.preventDefault();
+    setOrgSaving(true);
+    try {
+      const payload = {
+        orgName: org.orgName || "",
+        addressLine1: org.addressLine1 || null,
+        addressLine2: org.addressLine2 || null,
+        city: org.city || null,
+        state: org.state || null,
+        postalCode: org.postalCode || null,
+        country: org.country || null,
+        phone: org.phone || null,
+        email: org.email || null,
+        website: org.website || null,
+        taxRegNo: org.taxRegNo || null,
+        logoUrl: org.logoUrl || null,
+        currencyCode: org.currencyCode || "INR",
+        currencySymbol: org.currencySymbol || "₹",
+        defaultTaxPercent: Number(org.defaultTaxPercent) || 0,
+        invoicePrefix: org.invoicePrefix || "INV",
+        defaultNotes: org.defaultNotes || null,
+        defaultTerms: org.defaultTerms || null,
+        footerNote: org.footerNote || null,
+      };
+      const res = await invoicesApi.updateOrgSettings(payload);
+      setOrg(res.data || org);
+      toast.success("Organization settings saved.");
+    } catch (err) {
+      toast.error(err.message || "Failed to save organization settings.");
+    } finally {
+      setOrgSaving(false);
+    }
+  };
 
   // Change password — calls POST /api/Auth/change-password
   const handlePasswordSave = async (e) => {
@@ -42,7 +98,7 @@ export default function SettingsPage() {
   };
 
   // Profile picture
-  const [profilePic, setProfilePic] = useState(() => localStorage.getItem("edu_admin_pic") || admin?.profilePic || "");
+  const [profilePic, setProfilePic] = useState(() => localStorage.getItem("edu_user_pic") || user?.profilePic || "");
   const fileInputRef = React.useRef(null);
 
   const [picLoading, setPicLoading] = useState(false);
@@ -56,13 +112,13 @@ export default function SettingsPage() {
     try {
       const res = await adminProfileApi.uploadPhoto(file);
       const photoUrl = res.data; // backend returns the uploaded URL in data
-      localStorage.setItem("edu_admin_pic", photoUrl);
+      localStorage.setItem("edu_user_pic", photoUrl);
       setProfilePic(photoUrl);
       try {
-        const stored = JSON.parse(localStorage.getItem("edu_admin"));
+        const stored = JSON.parse(localStorage.getItem("edu_user"));
         if (stored) {
           stored.profilePic = photoUrl;
-          localStorage.setItem("edu_admin", JSON.stringify(stored));
+          localStorage.setItem("edu_user", JSON.stringify(stored));
         }
       } catch {}
       toast.success("Profile picture updated!");
@@ -74,20 +130,76 @@ export default function SettingsPage() {
   };
 
   const removeProfilePic = () => {
-    localStorage.removeItem("edu_admin_pic");
+    localStorage.removeItem("edu_user_pic");
     setProfilePic("");
     try {
-      const stored = JSON.parse(localStorage.getItem("edu_admin"));
+      const stored = JSON.parse(localStorage.getItem("edu_user"));
       if (stored) {
         delete stored.profilePic;
-        localStorage.setItem("edu_admin", JSON.stringify(stored));
+        localStorage.setItem("edu_user", JSON.stringify(stored));
       }
     } catch {}
     toast.success("Profile picture removed.");
   };
 
+  const orgTextFields = [
+    ["Organization Name", "orgName"],
+    ["Logo URL", "logoUrl"],
+    ["Address Line 1", "addressLine1"],
+    ["Address Line 2", "addressLine2"],
+    ["City", "city"],
+    ["State", "state"],
+    ["Postal Code", "postalCode"],
+    ["Country", "country"],
+    ["Phone", "phone"],
+    ["Email", "email"],
+    ["Website", "website"],
+    ["GSTIN / Tax Reg. No.", "taxRegNo"],
+    ["Currency Code", "currencyCode"],
+    ["Currency Symbol", "currencySymbol"],
+    ["Default Tax %", "defaultTaxPercent"],
+    ["Invoice Prefix", "invoicePrefix"],
+    ["Footer Note", "footerNote"],
+  ];
+
   return (
-    <div className="page" style={{ maxWidth: 640 }}>
+    <div className="page" style={{ maxWidth: 820 }}>
+
+      {/* Organization / Invoice Branding */}
+      <Section title="Organization & Invoice Branding" description="These details appear on every newly generated invoice.">
+        {orgLoading || !org ? (
+          <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Loading…</div>
+        ) : (
+          <form onSubmit={handleOrgSave} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+              {orgTextFields.map(([lbl, key]) => (
+                <div key={key}>
+                  <label className="label">{lbl}</label>
+                  <input
+                    className="input-field"
+                    type={key === "defaultTaxPercent" ? "number" : "text"}
+                    value={org[key] ?? ""}
+                    onChange={(e) => setOrgField(key, e.target.value)}
+                  />
+                </div>
+              ))}
+            </div>
+            <div>
+              <label className="label">Default Notes</label>
+              <textarea className="input-field" style={{ minHeight: 70 }} value={org.defaultNotes ?? ""} onChange={(e) => setOrgField("defaultNotes", e.target.value)} />
+            </div>
+            <div>
+              <label className="label">Default Terms &amp; Conditions</label>
+              <textarea className="input-field" style={{ minHeight: 90 }} value={org.defaultTerms ?? ""} onChange={(e) => setOrgField("defaultTerms", e.target.value)} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <button type="submit" className="btn-primary" disabled={orgSaving}>
+                {orgSaving ? "Saving..." : "Save Organization Settings"}
+              </button>
+            </div>
+          </form>
+        )}
+      </Section>
 
       {/* Profile Picture */}
       <Section title="Profile Picture" description="Upload a profile photo for your admin account.">
@@ -97,7 +209,7 @@ export default function SettingsPage() {
               <img src={profilePic} alt="Profile" style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover", border: "3px solid var(--primary)" }} />
             ) : (
               <div style={{ width: 80, height: 80, borderRadius: "50%", background: "linear-gradient(135deg, #5B5BD6, #8B8FD4)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.4rem" }}>
-                {admin?.avatar || "AD"}
+                {user?.avatar || "US"}
               </div>
             )}
           </div>

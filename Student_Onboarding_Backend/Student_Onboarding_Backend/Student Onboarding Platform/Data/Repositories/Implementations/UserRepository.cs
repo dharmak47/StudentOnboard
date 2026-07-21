@@ -89,8 +89,7 @@ public class UserRepository : IUserRepository
     {
         using var conn = _db.CreateConnection();
         await conn.ExecuteAsync(@"
-            UPDATE Users SET ApprovalStatus = @Status, ApprovedBy = @ApprovedBy,
-                ApprovedAt = @ApprovedAt, DenialReason = @DenialReason, UpdatedAt = @UpdatedAt
+            UPDATE Users SET ApprovalStatus = @Status, UpdatedAt = @UpdatedAt
             WHERE Id = @Id",
             new
             {
@@ -153,6 +152,14 @@ public class UserRepository : IUserRepository
         return await conn.QueryAsync<User>(
             "SELECT * FROM Users WHERE Role = @Role AND IsDeleted = @IsDeleted AND IsActive = @IsActive",
             new { Role = "Admin", IsDeleted = false, IsActive = true });
+    }
+
+    public async Task<IEnumerable<User>> GetAllAsync()
+    {
+        using var conn = _db.CreateConnection();
+        return await conn.QueryAsync<User>(
+            "SELECT * FROM Users WHERE IsDeleted = @IsDeleted",
+            new { IsDeleted = false });
     }
 
     public async Task UpdateProfileAsync(Guid userId, string firstName, string lastName, string? phoneNumber,

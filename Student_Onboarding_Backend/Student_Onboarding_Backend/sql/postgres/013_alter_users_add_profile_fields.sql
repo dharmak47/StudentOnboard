@@ -4,21 +4,7 @@
 -- Created: 2026-03-16
 -- ============================================
 
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'dateofbirth') THEN
-        ALTER TABLE Users ADD COLUMN DateOfBirth DATE;
-    END IF;
-
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'address') THEN
-        ALTER TABLE Users ADD COLUMN Address VARCHAR(500);
-    END IF;
-
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'education') THEN
-        ALTER TABLE Users ADD COLUMN Education VARCHAR(200);
-    END IF;
-
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'profilephotourl') THEN
-        ALTER TABLE Users ADD COLUMN ProfilePhotoUrl VARCHAR(500);
-    END IF;
-END $$;
+ALTER TABLE Users ADD COLUMN IF NOT EXISTS DateOfBirth DATE;
+ALTER TABLE Users ADD COLUMN IF NOT EXISTS Address VARCHAR(500);
+ALTER TABLE Users ADD COLUMN IF NOT EXISTS Education VARCHAR(200);
+ALTER TABLE Users ADD COLUMN IF NOT EXISTS ProfilePhotoUrl VARCHAR(500);
