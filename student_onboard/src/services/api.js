@@ -113,7 +113,12 @@ if (typeof window !== "undefined") {
   });
 }
 
-// ── Core fetch wrapper ────────────────────────────────────────────────────
+const getFinalUrl = (path) => {
+  const cleanPath = path.startsWith('/api') ? path.substring(4) : path;
+  const cleanBaseUrl = BASE_URL.endsWith('/api') ? BASE_URL.slice(0, -4) : BASE_URL;
+  return `${cleanBaseUrl}/api${cleanPath}`;
+};
+
 async function request(method, path, body, isPublic = false) {
   const headers = { "Content-Type": "application/json" };
 
@@ -124,7 +129,7 @@ async function request(method, path, body, isPublic = false) {
 
   let res;
   try {
-    res = await fetch(`${BASE_URL}${path}`, {
+    res = await fetch(getFinalUrl(path), {
       method,
       headers,
       ...(body ? { body: JSON.stringify(body) } : {}),
@@ -144,16 +149,16 @@ async function request(method, path, body, isPublic = false) {
         refreshQueue.push({ resolve, reject });
       }).then((newToken) => {
         headers["Authorization"] = `Bearer ${newToken}`;
-        return fetch(`${BASE_URL}${path}`, { method, headers, ...(body ? { body: JSON.stringify(body) } : {}) }).then(r => r.json());
+        return fetch(getFinalUrl(path), { method, headers, ...(body ? { body: JSON.stringify(body) } : {}) }).then(r => r.json());
       });
     }
 
     isRefreshing = true;
-    try {
+      try {
       const newToken = await refreshAccessToken();
       processQueue(null, newToken);
       headers["Authorization"] = `Bearer ${newToken}`;
-      res = await fetch(`${BASE_URL}${path}`, {
+      res = await fetch(getFinalUrl(path), {
         method, headers,
         ...(body ? { body: JSON.stringify(body) } : {}),
       });
@@ -203,7 +208,7 @@ async function uploadFile(path, file, fieldName = "photo") {
   const token = tokenHelper.getAccess();
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const res = await fetch(getFinalUrl(path), {
     method: "POST",
     headers,
     body: formData,
@@ -547,7 +552,7 @@ export const adminApi = {
 export const certificatesApi = {
   download: async (registrationId) => {
     const token = tokenHelper.getAccess();
-    const res = await fetch(`${BASE_URL}/Admin/certificates/${registrationId}`, {
+    const res = await fetch(getFinalUrl(`/Admin/certificates/${registrationId}`), {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
