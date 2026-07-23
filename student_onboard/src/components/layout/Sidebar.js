@@ -10,7 +10,7 @@ const ADMIN_NAV = [
   { id: "registrations",  icon: "▤",  label: "Registrations"  },
   { id: "courses",        icon: "◈",  label: "Courses"        },
   { id: "invoices",       icon: "🧾", label: "Invoices"       },
-  { id: "course-completion", icon: "✓", label: "Completions" },
+  // { id: "course-completion", icon: "✓", label: "Completions" },
   // { id: "analytics",      icon: "📊", label: "Analytics"      }, // Commented out - code preserved
   { id: "notifications",  icon: <FiBell size={16} />, label: "Notifications"  },
   { id: "faqs",           icon: "?",  label: "FAQs"           },

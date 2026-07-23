@@ -393,7 +393,7 @@ export const registrationsApi = {
     const res = await put(`/api/Admin/course-registrations/${id}/payment`, payload);
     return res;
   },
-  complete: (id) => put(`/Admin/course-registrations/${id}/complete`),
+  complete: (id) => put(`/api/Admin/course-registrations/${id}/complete`),
 };
 
 // ── Notifications API ─────────────────────────────────────────────────────
@@ -526,7 +526,12 @@ export const invoicesApi = {
 
 // ── Enquiries API ────────────────────────────────────────────────────────
 export const enquiriesApi = {
-  submit: (payload) => post("/api/Enquiries", payload, true), // Public
+  submit: (payload) => post("/api/Enquiries", {
+    name: payload.name,
+    email: payload.email,
+    phoneNumber: payload.phoneNumber,
+    message: payload.message,
+  }, true), // Public
   getAll: async () => {
     const res = await get("/api/Enquiries");
     return { data: res.data || [] };
