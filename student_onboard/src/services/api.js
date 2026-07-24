@@ -279,9 +279,9 @@ const mapStudent = (s) => ({
   enrolledAt: s.createdAt ? new Date(s.createdAt).toLocaleDateString() : "—",
   course: s.registeredCourses?.[0]?.courseName || "—",
   courseStatus: s.registeredCourses?.[0]?.status || "—",
-  registrationId: s.registeredCourses?.[0]?.id,
+  registrationId: s.registeredCourses?.[0]?.registrationId,
   registeredCourses: (s.registeredCourses || []).map(rc => ({
-    id: rc.id,
+    registrationId: rc.registrationId,
     courseName: rc.courseName,
     status: rc.status,
     isCompleted: rc.isCompleted,

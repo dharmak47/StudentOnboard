@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { useStudentStats, useStudents } from "../hooks/useStudents";
 import { useCourses } from "../hooks/useCourses";
-import { analyticsApi } from "../services/api";
+import { analyticsApi, certificatesApi } from "../services/api";
 import { StatCard, StatusBadge, PageLoader, Avatar } from "../components/common";
 
 const COLORS = ["#5B5BD6", "#8B8FD4", "#C4C3E8", "#F5D7F0", "#EBBFE5"];
@@ -26,6 +26,19 @@ export default function DashboardPage() {
   const { students, loading: studentsLoading } = useStudents({ status: "all", search: "" });
   const [analytics, setAnalytics] = useState(null);
   const [backendOffline, setBackendOffline] = useState(false);
+  const [downloadingId, setDownloadingId] = useState(null);
+
+  const handleDownloadCert = async (regId) => {
+    setDownloadingId(regId);
+    try {
+      await certificatesApi.download(regId);
+      alert("Certificate downloaded successfully.");
+    } catch (err) {
+      alert("Failed to download certificate. " + (err.message || ""));
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   const fetchAnalytics = useCallback(() => {
     analyticsApi.overview()
@@ -155,6 +168,7 @@ export default function DashboardPage() {
                   <th style={{ textAlign: "left", padding: "10px 0", fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Progress</th>
                   <th style={{ textAlign: "left", padding: "10px 0", fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Course Status</th>
                   <th style={{ textAlign: "left", padding: "10px 0", fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Student Status</th>
+                  <th style={{ textAlign: "left", padding: "10px 0", fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -202,6 +216,22 @@ export default function DashboardPage() {
                       </td>
                       <td style={{ padding: "12px 0" }}>
                         <StatusBadge status={s.status} />
+                      </td>
+                      <td style={{ padding: "12px 0" }}>
+                        {activeCourse?.isCompleted && (
+                          <button
+                            onClick={() => handleDownloadCert(activeCourse.registrationId)}
+                            disabled={downloadingId === activeCourse.registrationId}
+                            style={{
+                              background: "var(--primary)", color: "#fff", border: "none",
+                              borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: "0.75rem",
+                              fontWeight: 600
+                            }}
+                            title="Download Certificate"
+                          >
+                            {downloadingId === activeCourse.registrationId ? "⏳" : "📥 Certificate"}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );

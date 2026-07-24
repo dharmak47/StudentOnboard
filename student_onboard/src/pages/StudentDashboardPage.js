@@ -7,6 +7,7 @@ import { ModuleProgress } from "../components/student/ModuleProgress";
 
 export default function StudentDashboardPage({ onNavigate }) {
   const toast = useToast();
+
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [progressData, setProgressData] = useState(null);
@@ -145,6 +146,7 @@ export default function StudentDashboardPage({ onNavigate }) {
                     currentModule={progressData.currentModule}
                     viewType="grid"
                   />
+
                 </div>
               )}
 

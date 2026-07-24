@@ -9,6 +9,7 @@ public class StudentDashboardResponse
     public string Email { get; set; } = string.Empty;
 
     // Active course info (when payment is Paid)
+    public Guid? ActiveRegistrationId { get; set; }
     public string? CourseName { get; set; }
     public string? CourseDuration { get; set; }
     public string? CourseStatus { get; set; } // "Ongoing", "Completed", "Pending Payment"
@@ -23,6 +24,7 @@ public class StudentDashboardResponse
 
 public class CompletedCourseDto
 {
+    public Guid RegistrationId { get; set; }
     public string CourseName { get; set; } = string.Empty;
     public string? Duration { get; set; }
     public DateTime? CompletedAt { get; set; }

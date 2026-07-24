@@ -22,7 +22,7 @@ const STUDENT_NAV = [
   { id: "courses",        icon: "◈",  label: "Courses"        },
   { id: "invoices",       icon: "🧾", label: "Invoices"       },
   // { id: "progress",       icon: "📈", label: "My Progress"     },
-  { id: "certificates",   icon: "📜", label: "Certificates"   },
+
   { id: "payments",       icon: "💳", label: "Payment History" },
   { id: "notifications",  icon: <FiBell size={16} />, label: "Notifications"  },
   { id: "help",           icon: "❓", label: "Help & Support"  },

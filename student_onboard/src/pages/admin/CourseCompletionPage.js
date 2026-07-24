@@ -3,7 +3,8 @@ import {
   getIncompleteRegistrations,
   markCourseComplete
 } from '../../services/courseCompletionApi';
-import { coursesApi } from '../../services/api';
+import { coursesApi, certificatesApi } from '../../services/api';
+import { useToast } from '../../context/ToastContext';
 import './CourseCompletionPage.css';
 
 /**
@@ -19,6 +20,8 @@ const CourseCompletionPage = () => {
   const [success, setSuccess] = useState(null);
   const [pagination, setPagination] = useState({ page: 1, pageSize: 20 });
   const [selectedRegistrations, setSelectedRegistrations] = useState(new Set());
+  const [downloadingId, setDownloadingId] = useState(null);
+  const toast = useToast();
 
   // Modal state for marking course complete
   const [showModal, setShowModal] = useState(false);
@@ -112,6 +115,18 @@ const CourseCompletionPage = () => {
     }
   };
 
+  const handleDownloadCert = async (regId) => {
+    setDownloadingId(regId);
+    try {
+      await certificatesApi.download(regId);
+      toast.success("Certificate downloaded successfully.");
+    } catch (err) {
+      toast.error(err.message || "Failed to download certificate.");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   const openCompletionModal = (registration) => {
     setCurrentRegistration(registration);
     setCompletionForm({
@@ -182,6 +197,16 @@ const CourseCompletionPage = () => {
           ? `Course completed and closed for ${currentRegistration.studentName} at ${completionPercentage}%`
           : `Progress updated to ${completionPercentage}% for ${currentRegistration.studentName} (course remains active)`;
         setSuccess(actionMessage);
+        
+        // Auto-download certificate if completion is 100% or marked as complete
+        if (completionPercentage >= 100 || completionForm.markAsComplete) {
+          toast.success(`Progress is 100%. Auto-downloading certificate for ${currentRegistration.studentName}...`);
+          // Use setTimeout to ensure the toast is seen and state resolves
+          setTimeout(() => {
+             handleDownloadCert(currentRegistration.registrationId);
+          }, 500);
+        }
+
         closeCompletionModal();
         loadIncompleteRegistrations(pagination.page);
       } else {
@@ -323,7 +348,7 @@ const CourseCompletionPage = () => {
                             : 'N/A'}
                         </td>
                         <td>{registration.paymentStatus}</td>
-                        <td>
+                        <td style={{ display: 'flex', gap: '8px' }}>
                           <button
                             className="btn-complete"
                             onClick={() => openCompletionModal(registration)}
@@ -331,6 +356,17 @@ const CourseCompletionPage = () => {
                           >
                             Mark Complete
                           </button>
+                          {registration.progressPercentage >= 100 && (
+                            <button
+                              className="btn-complete"
+                              style={{ backgroundColor: 'var(--primary)', color: 'white' }}
+                              onClick={() => handleDownloadCert(registration.registrationId)}
+                              disabled={downloadingId === registration.registrationId || loading}
+                              title="Download Certificate"
+                            >
+                              {downloadingId === registration.registrationId ? "⏳" : "📥"}
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}

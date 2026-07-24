@@ -114,6 +114,7 @@ public class StudentService : IStudentService
                 dashboard.PaymentStatus = activeReg.PaymentStatus;
                 dashboard.AmountDue = course.Fees - (activeReg.PaymentAmount ?? 0);
                 dashboard.EnrolledDate = activeReg.CreatedAt;
+                dashboard.ActiveRegistrationId = activeReg.Id;
 
                 if (activeReg.PaymentStatus == "Paid")
                 {
@@ -138,6 +139,7 @@ public class StudentService : IStudentService
             {
                 dashboard.CompletedCourses.Add(new CompletedCourseDto
                 {
+                    RegistrationId = reg.Id,
                     CourseName = course.Name,
                     Duration = course.Duration,
                     CompletedAt = reg.CompletedAt,

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { studentApi } from "../services/api";
+import { studentApi, enquiriesApi } from "../services/api";
 import { useToast } from "../context/ToastContext";
 
 export default function StudentHelpPage() {
@@ -32,7 +32,11 @@ export default function StudentHelpPage() {
 
     setLoading(true);
     try {
-      await studentApi.submitInquiry?.(formData) || toast.success("Message sent successfully! We will get back to you soon.");
+      await enquiriesApi.submit({
+        name: formData.name,
+        email: formData.email,
+        message: `[${formData.subject}] ${formData.message}`
+      });
       setFormData({ name: "", email: "", subject: "", message: "" });
       toast.success("Message sent successfully! We will get back to you soon.");
     } catch (err) {

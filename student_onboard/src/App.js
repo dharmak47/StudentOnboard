@@ -23,7 +23,7 @@ import StudentCoursesPage        from "./pages/StudentCoursesPage";
 import StudentInvoicesPage       from "./pages/StudentInvoicesPage";
 import StudentProfilePage        from "./pages/StudentProfilePage";
 import StudentNotificationsPage  from "./pages/StudentNotificationsPage";
-import StudentCertificatesPage   from "./pages/StudentCertificatesPage";
+
 import StudentPaymentHistoryPage from "./pages/StudentPaymentHistoryPage";
 import StudentProgressTrackingPage from "./pages/StudentProgressTrackingPage";
 import StudentHelpPage           from "./pages/StudentHelpPage";
@@ -50,7 +50,7 @@ const STUDENT_PAGES = {
   courses:        StudentCoursesPage,
   invoices:       StudentInvoicesPage,
   progress:       StudentProgressTrackingPage,
-  certificates:   StudentCertificatesPage,
+
   payments:       StudentPaymentHistoryPage,
   notifications:  StudentNotificationsPage,
   help:           StudentHelpPage,

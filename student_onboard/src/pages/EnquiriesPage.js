@@ -7,6 +7,10 @@ export default function EnquiriesPage() {
   const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [newEnquiry, setNewEnquiry] = useState({ name: "", email: "", phoneNumber: "", message: "" });
 
   const load = async () => {
     setLoading(true);
@@ -35,6 +39,27 @@ export default function EnquiriesPage() {
     }
   };
 
+  const handleAddEnquiry = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitSuccess(false);
+    try {
+      await enquiriesApi.submit(newEnquiry);
+      setSubmitSuccess(true);
+      setNewEnquiry({ name: "", email: "", phoneNumber: "", message: "" });
+      load();
+      setTimeout(() => {
+        setShowAddModal(false);
+        setSubmitSuccess(false);
+      }, 2000);
+    } catch (err) {
+      console.error("Submit failed", err);
+      alert("Failed to submit enquiry. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const pending = enquiries.filter((e) => e.status !== "Resolved");
   const resolved = enquiries.filter((e) => e.status === "Resolved");
 
@@ -50,17 +75,30 @@ export default function EnquiriesPage() {
             View and respond to prospective student enquiries
           </p>
         </div>
-        <button
-          onClick={load}
-          style={{
-            display: "flex", alignItems: "center", gap: 6,
-            background: "var(--primary)", color: "#fff", border: "none",
-            borderRadius: 8, padding: "8px 16px", cursor: "pointer",
-            fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "0.85rem",
-          }}
-        >
-          <FiRefreshCw size={14} /> Refresh
-        </button>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button
+            onClick={() => setShowAddModal(true)}
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              background: "#10B981", color: "#fff", border: "none",
+              borderRadius: 8, padding: "8px 16px", cursor: "pointer",
+              fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "0.85rem",
+            }}
+          >
+            + Add Enquiry
+          </button>
+          <button
+            onClick={load}
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              background: "var(--primary)", color: "#fff", border: "none",
+              borderRadius: 8, padding: "8px 16px", cursor: "pointer",
+              fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "0.85rem",
+            }}
+          >
+            <FiRefreshCw size={14} /> Refresh
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -203,6 +241,66 @@ export default function EnquiriesPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Add Enquiry Modal */}
+      {showAddModal && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999
+        }}>
+          <div style={{
+            background: "#fff", borderRadius: 16, padding: 32, width: "100%", maxWidth: 450,
+            boxShadow: "0 20px 40px rgba(0,0,0,0.2)", position: "relative"
+          }}>
+            <button onClick={() => setShowAddModal(false)} style={{
+              position: "absolute", top: 16, right: 16, background: "none", border: "none", fontSize: 24, cursor: "pointer", color: "#9898B8"
+            }}>×</button>
+            
+            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", fontWeight: 800, color: "#1A1A3E", marginBottom: 8 }}>Add New Enquiry</h2>
+            <p style={{ color: "#5A5A82", fontSize: "0.9rem", marginBottom: 24 }}>Manually enter a new prospective student enquiry.</p>
+
+            {submitSuccess ? (
+              <div style={{ padding: 20, background: "#D1FAE5", color: "#065F46", borderRadius: 8, textAlign: "center" }}>
+                <span style={{ fontSize: 24, display: "block", marginBottom: 8 }}>✅</span>
+                Enquiry has been added successfully!
+              </div>
+            ) : (
+              <form onSubmit={handleAddEnquiry} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <div>
+                  <label className="label">Full Name</label>
+                  <input className="input-field" type="text" placeholder="John Doe" required
+                    value={newEnquiry.name} onChange={(e) => setNewEnquiry({ ...newEnquiry, name: e.target.value })} />
+                </div>
+                
+                <div>
+                  <label className="label">Email Address</label>
+                  <input className="input-field" type="email" placeholder="john@example.com" required
+                    value={newEnquiry.email} onChange={(e) => setNewEnquiry({ ...newEnquiry, email: e.target.value })} />
+                </div>
+                
+                <div>
+                  <label className="label">Phone Number</label>
+                  <input className="input-field" type="tel" placeholder="+1 234 567 8900"
+                    value={newEnquiry.phoneNumber} onChange={(e) => setNewEnquiry({ ...newEnquiry, phoneNumber: e.target.value })} />
+                </div>
+                
+                <div>
+                  <label className="label">Message</label>
+                  <textarea className="input-field" placeholder="Enquiry details..." required rows={4}
+                    style={{ resize: "vertical", padding: "12px 16px" }}
+                    value={newEnquiry.message} onChange={(e) => setNewEnquiry({ ...newEnquiry, message: e.target.value })} />
+                </div>
+                
+                <button type="submit" className="btn-primary" disabled={isSubmitting}
+                  style={{ width: "100%", justifyContent: "center", padding: "12px", marginTop: 8 }}>
+                  {isSubmitting ? "Submitting..." : "Submit Enquiry"}
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       )}
     </div>

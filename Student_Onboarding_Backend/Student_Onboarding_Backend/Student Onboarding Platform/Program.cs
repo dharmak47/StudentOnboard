@@ -72,5 +72,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+
+
+
 Log.Information("Student Onboarding Platform API starting...");
 app.Run();

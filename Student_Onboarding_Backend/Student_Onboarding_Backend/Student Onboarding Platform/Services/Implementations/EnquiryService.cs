@@ -1,6 +1,6 @@
 using Dapper;
 using System.Data;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using Microsoft.Extensions.Configuration;
 using Student_Onboarding_Platform.Models.DTOs;
 using Student_Onboarding_Platform.Models.DTOs.Common;
@@ -21,7 +21,7 @@ public class EnquiryService : IEnquiryService
         _logger = logger;
     }
 
-    private IDbConnection CreateConnection() => new SqlConnection(_connectionString);
+    private IDbConnection CreateConnection() => new NpgsqlConnection(_connectionString);
 
     public async Task<ApiResponse<EnquiryDto>> CreateEnquiryAsync(EnquiryRequestDto requestDto)
     {
