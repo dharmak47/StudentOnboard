@@ -15,7 +15,6 @@ CREATE TABLE IF NOT EXISTS CourseRegistrations (
     IsActive BOOLEAN DEFAULT TRUE,
     CreatedAt TIMESTAMP DEFAULT NOW(),
     UpdatedAt TIMESTAMP,
-
     CONSTRAINT fk_courseregistrations_user
         FOREIGN KEY (UserId) REFERENCES Users(Id),
     CONSTRAINT fk_courseregistrations_course

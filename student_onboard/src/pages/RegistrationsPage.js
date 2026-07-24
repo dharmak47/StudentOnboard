@@ -1,6 +1,6 @@
 // src/pages/RegistrationsPage.js
 import React, { useState, useEffect, useMemo } from "react";
-import { registrationsApi, coursesApi, certificatesApi } from "../services/api";
+import { registrationsApi, coursesApi } from "../services/api";
 import { useToast } from "../context/ToastContext";
 import { SearchInput, PageLoader, EmptyState } from "../components/common";
 
@@ -19,7 +19,7 @@ export default function RegistrationsPage() {
   const [courseFilter, setCourseFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [updatingId, setUpdatingId] = useState(null);
-  const [downloadingId, setDownloadingId] = useState(null);
+
   const [editingAmount, setEditingAmount] = useState({});
 
   const initialLoadDone = React.useRef(false);
@@ -75,17 +75,7 @@ export default function RegistrationsPage() {
     handlePaymentChange(regId, currentStatus || "Partial", Number(amount));
   };
 
-  const handleDownloadCert = async (regId) => {
-    setDownloadingId(regId);
-    try {
-      await certificatesApi.download(regId);
-      toast.success("Certificate downloaded successfully.");
-    } catch (err) {
-      toast.error(err.message || "Failed to download certificate.");
-    } finally {
-      setDownloadingId(null);
-    }
-  };
+
 
   const handleCompleteCourse = async (regId) => {
     setUpdatingId(regId);
@@ -186,7 +176,7 @@ export default function RegistrationsPage() {
           display: "grid", gridTemplateColumns: "2fr 1.8fr 1.2fr 1fr 1fr 1fr",
           gap: 16, padding: "12px 20px", background: "var(--surface-2)", borderBottom: "1px solid var(--border)",
         }}>
-          {["Student", "Course", "Payment", "Amount", "Registered", "Certificate"].map((h) => (
+          {["Student", "Course", "Payment", "Amount", "Registered", "Actions"].map((h) => (
             <div key={h} style={{ fontFamily: "var(--font-display)", fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</div>
           ))}
         </div>
@@ -282,30 +272,10 @@ export default function RegistrationsPage() {
                   {r.registeredAt ? new Date(r.registeredAt).toLocaleDateString() : "—"}
                 </span>
               </div>
-              {/* Certificate */}
+              {/* Actions */}
               <div style={{ display: "flex", alignItems: "center" }}>
                 {r.isCompleted ? (
-                  <button
-                    onClick={() => handleDownloadCert(r.id)}
-                    disabled={downloadingId === r.id}
-                    style={{
-                      padding: "6px 12px",
-                      fontSize: "0.75rem",
-                      fontFamily: "var(--font-display)",
-                      fontWeight: 700,
-                      background: "var(--primary)",
-                      color: "white",
-                      border: "none",
-                      borderRadius: 6,
-                      cursor: downloadingId === r.id ? "wait" : "pointer",
-                      opacity: downloadingId === r.id ? 0.7 : 1,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 4
-                    }}
-                  >
-                    {downloadingId === r.id ? "⏳" : "📥"} Download
-                  </button>
+                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 600 }}>Completed</span>
                 ) : (
                   <button
                     onClick={() => handleCompleteCourse(r.id)}

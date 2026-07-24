@@ -5,7 +5,7 @@ namespace Student_Onboarding_Platform.Services.Interfaces;
 
 public interface IAuthService
 {
-    Task<ApiResponse<string>> SignupAsync(SignupRequest request);
+    Task<ApiResponse<AuthResponse>> SignupAsync(SignupRequest request);
     Task<ApiResponse<AuthResponse>> LoginAsync(LoginRequest request, string? ipAddress, string? userAgent);
     Task<ApiResponse<string>> VerifyOtpAsync(VerifyOtpRequest request);
     Task<ApiResponse<string>> ResendOtpAsync(ResendOtpRequest request);

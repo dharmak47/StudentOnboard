@@ -25,8 +25,9 @@ public class CertificateService : ICertificateService
                 page.DefaultTextStyle(x => x.FontSize(16).FontFamily(Fonts.Arial));
 
                 var logoPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nutech_logo.png");
+                var signaturePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "signature.jpg");
                 
-                page.Content().Border(10).BorderColor("#1E3A8A").Padding(2, Unit.Centimetre).Column(x =>
+                page.Content().Border(8).BorderColor("#1E3A8A").Padding(1.5f, Unit.Centimetre).Column(x =>
                 {
                     // Header Area
                     x.Item().Row(row => 
@@ -51,35 +52,45 @@ public class CertificateService : ICertificateService
                         row.RelativeItem().AlignRight().Text($"ID: {verificationId}").FontSize(10).FontColor(Colors.Grey.Medium);
                     });
 
-                    x.Item().PaddingTop(0.5f, Unit.Centimetre).AlignCenter().Text("CERTIFICATE OF COMPLETION")
+                    x.Item().PaddingTop(0.3f, Unit.Centimetre).AlignCenter().Text("CERTIFICATE OF COMPLETION")
                         .FontSize(40).SemiBold().FontColor("#0F172A");
 
-                    x.Item().PaddingTop(0.5f, Unit.Centimetre).AlignCenter().Text("This is to proudly certify that")
+                    x.Item().PaddingTop(0.3f, Unit.Centimetre).AlignCenter().Text("This is to proudly certify that")
                         .FontSize(18).Italic().FontColor(Colors.Grey.Darken2);
 
-                    x.Item().PaddingTop(0.5f, Unit.Centimetre).AlignCenter().Text(studentName)
+                    x.Item().PaddingTop(0.3f, Unit.Centimetre).AlignCenter().Text(studentName)
                         .FontSize(36).Bold().FontColor("#3B82F6");
 
-                    x.Item().PaddingTop(0.5f, Unit.Centimetre).AlignCenter().Text("has successfully completed the comprehensive program in")
+                    x.Item().PaddingTop(0.3f, Unit.Centimetre).AlignCenter().Text("has successfully completed the comprehensive program in")
                         .FontSize(18).Italic().FontColor(Colors.Grey.Darken2);
 
-                    x.Item().PaddingTop(0.5f, Unit.Centimetre).AlignCenter().Text(courseName)
+                    x.Item().PaddingTop(0.3f, Unit.Centimetre).AlignCenter().Text(courseName)
                         .FontSize(24).SemiBold().FontColor("#0F172A");
 
-                    x.Item().PaddingTop(1, Unit.Centimetre).AlignCenter().Text($"Awarded on {completionDate:MMMM dd, yyyy}")
+                    x.Item().PaddingTop(0.8f, Unit.Centimetre).AlignCenter().Text($"Awarded on {completionDate:MMMM dd, yyyy}")
                         .FontSize(16).FontColor(Colors.Grey.Darken3);
                         
-                    x.Item().PaddingTop(1, Unit.Centimetre).Row(row => 
+                    x.Item().PaddingTop(0.8f, Unit.Centimetre).Row(row => 
                     {
                         row.RelativeItem().AlignLeft().Column(col => 
                         {
-                            col.Item().Text("_______________________").FontColor(Colors.Grey.Medium);
-                            col.Item().PaddingTop(5).Text("Center Head").FontSize(12).FontColor(Colors.Grey.Darken2);
+                            if (File.Exists(signaturePath)) {
+                                col.Item().Width(100).Image(signaturePath);
+                            } else {
+                                col.Item().PaddingTop(20).Text("_______________________").FontColor(Colors.Grey.Medium);
+                            }
+                            col.Item().PaddingTop(5).Text("Dharmarajan K").FontSize(16).Italic().FontColor("#1E3A8A");
+                            col.Item().Text("Center Head").FontSize(12).FontColor(Colors.Grey.Darken2);
                         });
                         row.RelativeItem().AlignRight().Column(col => 
                         {
-                            col.Item().Text("_______________________").FontColor(Colors.Grey.Medium);
-                            col.Item().PaddingTop(5).Text("Authorized Signatory").FontSize(12).FontColor(Colors.Grey.Darken2);
+                            if (File.Exists(signaturePath)) {
+                                col.Item().Width(100).Image(signaturePath);
+                            } else {
+                                col.Item().PaddingTop(20).Text("_______________________").FontColor(Colors.Grey.Medium);
+                            }
+                            col.Item().PaddingTop(5).Text("Malini V").FontSize(16).Italic().FontColor("#1E3A8A");
+                            col.Item().Text("Authorized Signatory").FontSize(12).FontColor(Colors.Grey.Darken2);
                         });
                     });
                 });

@@ -12,7 +12,7 @@ namespace Student_Onboarding_Platform.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = "Student")]
 public class StudentController : ControllerBase
 {
     private readonly IStudentService _studentService;
@@ -22,6 +22,9 @@ public class StudentController : ControllerBase
     private readonly ICourseReviewRepository _reviewRepository;
     private readonly IUserService _userService;
     private readonly IFaqService _faqService;
+    private readonly IInvoiceService _invoiceService;
+    private readonly IStudentProgressService _progressService;
+    private readonly ICertificateService _certificateService;
 
     public StudentController(
         IStudentService studentService,
@@ -30,7 +33,10 @@ public class StudentController : ControllerBase
         ICourseRegistrationRepository registrationRepository,
         ICourseReviewRepository reviewRepository,
         IUserService userService,
-        IFaqService faqService)
+        IFaqService faqService,
+        IInvoiceService invoiceService,
+        IStudentProgressService progressService,
+        ICertificateService certificateService)
     {
         _studentService = studentService;
         _notificationService = notificationService;
@@ -39,6 +45,9 @@ public class StudentController : ControllerBase
         _reviewRepository = reviewRepository;
         _userService = userService;
         _faqService = faqService;
+        _invoiceService = invoiceService;
+        _progressService = progressService;
+        _certificateService = certificateService;
     }
 
     [HttpGet("profile")]
@@ -217,6 +226,103 @@ public class StudentController : ControllerBase
     public async Task<IActionResult> GetFaqs()
     {
         var result = await _faqService.GetActiveFaqsAsync();
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    // ── Invoices (read-only for students) ──────────────────────────────
+
+    [HttpGet("courses/invoices")]
+    public async Task<IActionResult> GetMyInvoices()
+    {
+        var userId = User.GetUserId();
+        var result = await _invoiceService.GetForStudentAsync(userId);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpGet("courses/invoices/{id}")]
+    public async Task<IActionResult> GetMyInvoice(Guid id)
+    {
+        var userId = User.GetUserId();
+        var result = await _invoiceService.GetByIdForStudentAsync(id, userId);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpGet("courses/registrations/{registrationId}/invoice")]
+    public async Task<IActionResult> GetInvoiceForRegistration(Guid registrationId)
+    {
+        var userId = User.GetUserId();
+        var result = await _invoiceService.GetOrCreateForRegistrationAsync(registrationId, userId, isAdmin: false);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    // Course Progress Endpoints
+
+    [HttpGet("progress/{registrationId}")]
+    public async Task<IActionResult> GetProgress(Guid registrationId)
+    {
+        var userId = User.GetUserId();
+
+        // Verify that the registration belongs to the current user
+        var registration = await _registrationRepository.GetByIdAsync(registrationId);
+        if (registration == null || registration.UserId != userId)
+            return Forbid("You can only view your own progress.");
+
+        var result = await _progressService.GetProgressAsync(registrationId);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpPut("progress/{registrationId}")]
+    public async Task<IActionResult> UpdateProgress(
+        Guid registrationId,
+        [FromBody] UpdateProgressRequest request)
+    {
+        var userId = User.GetUserId();
+
+        // Verify that the registration belongs to the current user
+        var registration = await _registrationRepository.GetByIdAsync(registrationId);
+        if (registration == null || registration.UserId != userId)
+            return Forbid("You can only update your own progress.");
+
+        // Validate request
+        if (request.CompletedModules < 0)
+            return BadRequest(ApiResponse<string>.Fail("Completed modules must be non-negative."));
+
+        var result = await _progressService.UpdateProgressAsync(registrationId, request);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpGet("certificates/{registrationId}")]
+    public async Task<IActionResult> DownloadCertificate(Guid registrationId)
+    {
+        var userId = User.GetUserId();
+        var registration = await _registrationRepository.GetByIdAsync(registrationId);
+        if (registration == null || registration.UserId != userId)
+            return Forbid("You can only download your own certificates.");
+
+        if (!registration.IsCompleted)
+            return BadRequest("Certificate is available only after completing the course.");
+
+        var student = await _userService.GetByIdAsync(userId);
+        var course = await _courseRepository.GetByIdAsync(registration.CourseId);
+        if (student == null || course == null)
+            return BadRequest("Invalid student or course data.");
+
+        var pdfBytes = _certificateService.GenerateCertificate(
+            $"{student.FirstName} {student.LastName}",
+            course.Name,
+            registration.CompletedAt ?? DateTime.UtcNow,
+            registration.Id.ToString());
+
+        var fileName = $"{course.Name}_Certificate.pdf";
+        return File(pdfBytes, "application/pdf", fileName);
+    }
+
+    // Existing GetProgressSummary method
+    [HttpGet("progress/summary")]
+    public async Task<IActionResult> GetProgressSummary()
+    {
+        var userId = User.GetUserId();
+        var result = await _progressService.GetStudentProgressSummaryAsync(userId);
         return result.Success ? Ok(result) : BadRequest(result);
     }
 }

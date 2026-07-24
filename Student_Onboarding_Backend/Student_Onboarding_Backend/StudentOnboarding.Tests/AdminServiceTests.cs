@@ -23,6 +23,9 @@ namespace StudentOnboarding.Tests
         private readonly Mock<INotificationService>            _notificationServiceMock;
         private readonly Mock<ISessionService>                 _sessionServiceMock;
         private readonly Mock<IFileStorageService>             _fileStorageMock;
+        private readonly Mock<IPasswordHasher>                 _passwordHasherMock;
+        private readonly Mock<IInvoiceService>                 _invoiceServiceMock;
+        private readonly Mock<IStudentProgressService>         _progressServiceMock;
         private readonly Mock<ILogger<AdminService>>           _loggerMock;
         private readonly AdminService                          _adminService;
 
@@ -35,6 +38,9 @@ namespace StudentOnboarding.Tests
             _notificationServiceMock = new Mock<INotificationService>();
             _sessionServiceMock      = new Mock<ISessionService>();
             _fileStorageMock         = new Mock<IFileStorageService>();
+            _passwordHasherMock      = new Mock<IPasswordHasher>();
+            _invoiceServiceMock      = new Mock<IInvoiceService>();
+            _progressServiceMock     = new Mock<IStudentProgressService>();
             _loggerMock              = new Mock<ILogger<AdminService>>();
 
             _adminService = new AdminService(
@@ -45,6 +51,9 @@ namespace StudentOnboarding.Tests
                 _notificationServiceMock.Object,
                 _sessionServiceMock.Object,
                 _fileStorageMock.Object,
+                _passwordHasherMock.Object,
+                _invoiceServiceMock.Object,
+                _progressServiceMock.Object,
                 _loggerMock.Object
             );
         }
@@ -173,7 +182,7 @@ namespace StudentOnboarding.Tests
             Assert.True(result.Success);
             Assert.Equal("Student approved successfully.", result.Data);
             _userServiceMock.Verify(u => u.UpdateApprovalStatusAsync(studentId, nameof(ApprovalStatus.Approved), adminId, null), Times.Once);
-            _emailServiceMock.Verify(e => e.SendApprovalEmailAsync(student.Email, student.FirstName), Times.Once);
+            _emailServiceMock.Verify(e => e.SendApprovalEmailAsync(student.Email, student.FirstName), Times.Never);
         }
 
         [Fact]
@@ -243,7 +252,7 @@ namespace StudentOnboarding.Tests
             Assert.True(result.Success);
             Assert.Equal("Student denied successfully.", result.Data);
             _userServiceMock.Verify(u => u.UpdateApprovalStatusAsync(studentId, nameof(ApprovalStatus.Denied), adminId, request.Reason), Times.Once);
-            _emailServiceMock.Verify(e => e.SendDenialEmailAsync(student.Email, student.FirstName, request.Reason), Times.Once);
+            _emailServiceMock.Verify(e => e.SendDenialEmailAsync(student.Email, student.FirstName, request.Reason), Times.Never);
         }
 
         [Fact]

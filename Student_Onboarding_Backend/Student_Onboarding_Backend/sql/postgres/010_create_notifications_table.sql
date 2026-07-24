@@ -13,7 +13,6 @@ CREATE TABLE IF NOT EXISTS Notifications (
     ReferenceId UUID,
     IsRead BOOLEAN DEFAULT FALSE,
     CreatedAt TIMESTAMP DEFAULT NOW(),
-
     CONSTRAINT fk_notifications_user
         FOREIGN KEY (UserId) REFERENCES Users(Id)
 );

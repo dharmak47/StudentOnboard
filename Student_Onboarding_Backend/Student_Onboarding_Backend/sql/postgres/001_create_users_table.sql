@@ -21,3 +21,6 @@ CREATE TABLE IF NOT EXISTS Users (
     UpdatedAt TIMESTAMP,
     LastLoginAt TIMESTAMP
 );
+
+-- Note: the ApprovalStatus column (with a 'Pending' default) is added later by
+-- 007_alter_users_add_approval.sql. Do not add SQL Server-style ALTER statements here.
