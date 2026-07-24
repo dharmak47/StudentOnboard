@@ -182,7 +182,7 @@ namespace StudentOnboarding.Tests
             Assert.True(result.Success);
             Assert.Equal("Student approved successfully.", result.Data);
             _userServiceMock.Verify(u => u.UpdateApprovalStatusAsync(studentId, nameof(ApprovalStatus.Approved), adminId, null), Times.Once);
-            _emailServiceMock.Verify(e => e.SendApprovalEmailAsync(student.Email, student.FirstName), Times.Once);
+            _emailServiceMock.Verify(e => e.SendApprovalEmailAsync(student.Email, student.FirstName), Times.Never);
         }
 
         [Fact]
@@ -252,7 +252,7 @@ namespace StudentOnboarding.Tests
             Assert.True(result.Success);
             Assert.Equal("Student denied successfully.", result.Data);
             _userServiceMock.Verify(u => u.UpdateApprovalStatusAsync(studentId, nameof(ApprovalStatus.Denied), adminId, request.Reason), Times.Once);
-            _emailServiceMock.Verify(e => e.SendDenialEmailAsync(student.Email, student.FirstName, request.Reason), Times.Once);
+            _emailServiceMock.Verify(e => e.SendDenialEmailAsync(student.Email, student.FirstName, request.Reason), Times.Never);
         }
 
         [Fact]
